@@ -14,8 +14,12 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+"""
+URL configuration for inventory_system project.
+"""
 from django.contrib import admin
 from django.urls import path, include
+from django.views.generic import TemplateView  # ✅ Added for React
 from drf_spectacular.views import (
     SpectacularAPIView,
     SpectacularSwaggerView,
@@ -24,7 +28,7 @@ from drf_spectacular.views import (
 urlpatterns = [
     path("admin/", admin.site.urls),
 
-    # API
+    # API Routes
     path("api/", include("core.urls")),
 
     # Auth (for browsable API)
@@ -37,4 +41,8 @@ urlpatterns = [
         SpectacularSwaggerView.as_view(url_name="schema"),
         name="swagger-ui",
     ),
+
+    # ✅ React Frontend (Entry Point)
+    # This must be last. It serves the React app on the homepage.
+    path("", TemplateView.as_view(template_name="index.html")),
 ]

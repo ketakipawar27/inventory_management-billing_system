@@ -25,8 +25,9 @@ class Product(models.Model):
     unit_price = models.DecimalField(
         max_digits=10,
         decimal_places=2,
-        validators=[MinValueValidator(Decimal("0.00"))]
+        default=Decimal("0.00")
     )
+
     stock_quantity = models.IntegerField(
         default=0,
         validators=[MinValueValidator(0)]
@@ -80,7 +81,23 @@ class PurchaseItem(models.Model):
 
 
 class Bill(models.Model):
+
+    PAYMENT_CHOICES = [
+        ("cash", "Cash"),
+        ("online", "Online"),
+        ("pending", "Pending"),
+    ]
+
     customer_name = models.CharField(max_length=150)
+    customer_phone = models.CharField(max_length=20, blank=True, null=True)
+    customer_address = models.TextField(blank=True, null=True)
+
+    payment_method = models.CharField(
+        max_length=10,
+        choices=PAYMENT_CHOICES,
+        default="cash"
+    )
+
     bill_date = models.DateField()
     total_amount = models.DecimalField(
         max_digits=12,

@@ -3,6 +3,9 @@ from django.db import transaction
 from core.models import Bill, BillItem, Product
 
 
+# =========================
+# INPUT (CREATE BILL ITEMS)
+# =========================
 class BillItemInputSerializer(serializers.Serializer):
     product_id = serializers.IntegerField()
     quantity = serializers.IntegerField(min_value=1)
@@ -13,12 +16,50 @@ class BillItemInputSerializer(serializers.Serializer):
             raise serializers.ValidationError("Invalid or inactive product.")
         return value
 
+
+# =========================
+# OUTPUT (READ BILL ITEMS)
+# =========================
+class BillItemReadSerializer(serializers.ModelSerializer):
+    product_id = serializers.IntegerField(source="product.id", read_only=True)
+    product_name = serializers.CharField(source="product.name", read_only=True)
+
+    class Meta:
+        model = BillItem
+        fields = (
+            "product_id",
+            "product_name",
+            "quantity",
+            "price_per_unit",
+            "total_price",
+        )
+
+
+# =========================
+# BILL SERIALIZER
+# =========================
 class BillSerializer(serializers.ModelSerializer):
-    items = BillItemInputSerializer(many=True)
+    # For POST (create)
+    items = BillItemInputSerializer(many=True, write_only=True)
+
+    # For GET (read)
+    items_detail = BillItemReadSerializer(
+        source="items", many=True, read_only=True
+    )
 
     class Meta:
         model = Bill
-        fields = ("id", "customer_name", "bill_date", "items", "total_amount")
+        fields = (
+            "id",
+            "customer_name",
+            "customer_phone",
+            "customer_address",
+            "payment_method",
+            "bill_date",
+            "items",         # write-only
+            "items_detail",  # read-only
+            "total_amount",
+        )
         read_only_fields = ("total_amount",)
 
     @transaction.atomic
@@ -35,7 +76,7 @@ class BillSerializer(serializers.ModelSerializer):
 
             quantity = item["quantity"]
 
-            # 🚨 Critical check
+            # 🚨 HARD SAFETY CHECK (DO NOT REMOVE)
             if product.stock_quantity < quantity:
                 raise serializers.ValidationError(
                     f"Insufficient stock for {product.name}"
@@ -52,7 +93,7 @@ class BillSerializer(serializers.ModelSerializer):
                 total_price=total_price,
             )
 
-            # Update stock
+            # ⬇️ Reduce stock
             product.stock_quantity -= quantity
             product.save(update_fields=["stock_quantity"])
 
