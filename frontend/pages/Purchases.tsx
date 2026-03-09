@@ -5,6 +5,7 @@ import { PurchaseForm } from "../components/purchases/PurchaseForm";
 import { PurchaseFilters } from "../components/purchases/PurchaseFilters";
 import { PurchaseList } from "../components/purchases/PurchaseList";
 import { useToast } from "../context/ToastContext";
+import { Badge } from "../components/ui/Badge";
 
 const Purchases: React.FC = () => {
   const { showToast } = useToast();
@@ -83,16 +84,16 @@ const Purchases: React.FC = () => {
         <div className="lg:col-span-8 flex flex-col h-full overflow-hidden space-y-6">
           <div className="flex justify-between items-end px-2 shrink-0">
             <div>
-              <h2 className="text-2xl font-black flex items-center gap-3">
+              <h2 className="text-2xl font-black tracking-tight flex items-center gap-3">
                 History
               </h2>
-              <p className="text-neutral-500 text-sm">
+              <p className="text-neutral-500 text-sm font-medium">
                 Manage and filter purchase records
               </p>
             </div>
-            <div className="text-xs font-bold px-3 py-1 bg-neutral-100 dark:bg-neutral-800 rounded-full">
+            <Badge variant="outline" className="px-3 py-1.5">
               {filteredPurchases.length} Found
-            </div>
+            </Badge>
           </div>
 
           <div className="shrink-0">

@@ -7,6 +7,10 @@ import { BillForm } from "../components/billing/BillForm";
 import { BillHistory } from "../components/billing/BillHistory";
 import { ShoppingCart, History, Plus } from "lucide-react";
 import { useToast } from "../context/ToastContext";
+import { Button } from "../components/ui/Button";
+import { Card } from "../components/ui/Card";
+import { Badge } from "../components/ui/Badge";
+import { cn } from "../lib/utils";
 
 const Billing: React.FC = () => {
   const { showToast } = useToast();
@@ -122,24 +126,30 @@ const Billing: React.FC = () => {
       {/* HEADER / MODE TOGGLE */}
       <div className="flex justify-center mb-6 shrink-0">
           <div className="bg-white dark:bg-neutral-900 p-1.5 rounded-2xl border border-neutral-200 dark:border-neutral-800 flex gap-1 shadow-sm">
-              <button 
+              <Button
+                variant={mode === "create" ? "primary" : "ghost"}
+                size="md"
                 onClick={() => setMode("create")}
-                className={`
-                   px-6 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 transition-all
-                   ${mode === "create" ? "bg-black text-white dark:bg-white dark:text-black shadow-md" : "text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800"}
-                `}
+                className={cn(
+                   "px-6 rounded-xl",
+                   mode === "create" ? "shadow-md" : "text-neutral-500"
+                )}
+                icon={<Plus size={16} />}
               >
-                 <Plus size={16} /> New Bill
-              </button>
-              <button 
+                 New Bill
+              </Button>
+              <Button
+                variant={mode === "history" ? "primary" : "ghost"}
+                size="md"
                 onClick={() => setMode("history")}
-                className={`
-                   px-6 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 transition-all
-                   ${mode === "history" ? "bg-black text-white dark:bg-white dark:text-black shadow-md" : "text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800"}
-                `}
+                className={cn(
+                   "px-6 rounded-xl",
+                   mode === "history" ? "shadow-md" : "text-neutral-500"
+                )}
+                icon={<History size={16} />}
               >
-                 <History size={16} /> History
-              </button>
+                 History
+              </Button>
           </div>
       </div>
 
@@ -159,16 +169,16 @@ const Billing: React.FC = () => {
 
             {/* RIGHT: BILLING */}
             <div className="lg:col-span-7 flex flex-col lg:items-start h-full overflow-hidden">
-              <div className="w-full rounded-3xl flex flex-col shadow-xl overflow-hidden bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 h-full">
+              <Card className="w-full flex flex-col shadow-xl overflow-hidden p-0 h-full">
                 
                 {/* Header */}
                 <div className="p-4 border-b border-neutral-200 dark:border-neutral-800 flex justify-between items-center bg-neutral-50 dark:bg-neutral-900/50 shrink-0">
-                  <h2 className="font-bold text-base flex gap-2 items-center">
+                  <h2 className="font-black text-base flex gap-2 items-center tracking-tight">
                     <ShoppingCart className="w-5 h-5" /> Current Bill
                   </h2>
-                  <span className="text-xs font-bold px-3 py-1 rounded-full bg-black text-white dark:bg-white dark:text-black">
+                  <Badge variant="default" className="bg-black text-white dark:bg-white dark:text-black px-3 py-1">
                     {cart.length} Items
-                  </span>
+                  </Badge>
                 </div>
 
                 <BillCart
@@ -193,7 +203,7 @@ const Billing: React.FC = () => {
                   cartEmpty={cart.length === 0}
                   onSubmit={handleSubmit}
                 />
-              </div>
+              </Card>
             </div>
          </div>
       )}

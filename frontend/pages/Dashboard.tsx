@@ -5,6 +5,8 @@ import { TrendingUp, Package, CreditCard, ArrowUpRight, ArrowDownRight, ArrowRig
 import { formatCurrency, cn } from '../lib/utils';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
+import { Badge } from '../components/ui/Badge';
+import { PageHeader } from '../components/ui/PageHeader';
 import { motion } from 'framer-motion';
 
 const StatCard = ({ title, value, subtitle, icon: Icon, trend, variant = 'default' }: any) => (
@@ -17,18 +19,15 @@ const StatCard = ({ title, value, subtitle, icon: Icon, trend, variant = 'defaul
         <Icon size={20} className="sm:w-[22px] sm:h-[22px]" />
       </div>
       {trend && (
-        <div className={cn(
-          "flex items-center gap-1 text-[10px] sm:text-xs font-bold px-2 sm:px-2.5 py-1 rounded-lg",
-          trend > 0 ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" : "bg-rose-500/10 text-rose-600 dark:text-rose-400"
-        )}>
-          {trend > 0 ? <ArrowUpRight size={12} className="sm:w-3.5 sm:h-3.5" /> : <ArrowDownRight size={12} className="sm:w-3.5 sm:h-3.5" />}
+        <Badge variant={trend > 0 ? "success" : "error"} className="px-2 py-1">
+          {trend > 0 ? <ArrowUpRight size={12} className="mr-1" /> : <ArrowDownRight size={12} className="mr-1" />}
           {Math.abs(trend)}%
-        </div>
+        </Badge>
       )}
     </div>
     <div className="space-y-1">
       <h3 className="text-neutral-500 dark:text-neutral-400 text-[10px] sm:text-xs font-black uppercase tracking-widest">{title}</h3>
-      <div className="text-2xl sm:text-3xl font-black tracking-tight truncate">{value}</div>
+      <div className="text-2xl sm:text-3xl font-black tracking-tighter truncate">{value}</div>
       <p className="text-[10px] sm:text-xs text-neutral-400 font-medium truncate">{subtitle}</p>
     </div>
   </Card>
@@ -75,16 +74,15 @@ const Dashboard = () => {
 
   return (
     <div className="space-y-8 sm:space-y-10 pb-10">
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-        <div>
-          <h2 className="text-2xl sm:text-3xl font-black tracking-tighter">Summary</h2>
-          <p className="text-sm sm:text-base text-neutral-500 font-medium">Insights and growth tracking for your store.</p>
-        </div>
-        <div className="flex items-center gap-2 sm:gap-3">
-          <Button variant="outline" size="sm" className="flex-1 sm:flex-none py-2 text-xs">Export Report</Button>
-          <Button size="sm" className="flex-1 sm:flex-none py-2 text-xs">New Sale</Button>
-        </div>
-      </div>
+      <PageHeader
+        description="Insights and growth tracking for your store."
+        action={
+          <div className="flex items-center gap-2 sm:gap-3">
+            <Button variant="outline" size="sm" className="flex-1 sm:flex-none py-2 text-xs">Export Report</Button>
+            <Button size="sm" className="flex-1 sm:flex-none py-2 text-xs">New Sale</Button>
+          </div>
+        }
+      />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         <StatCard 

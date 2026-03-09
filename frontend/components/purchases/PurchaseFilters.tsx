@@ -1,6 +1,10 @@
 import React from "react";
 import { Product } from "../../types";
 import { Filter, Search, Package, X, Calendar } from "lucide-react";
+import { Card } from "../ui/Card";
+import { Input } from "../ui/Input";
+import { Select } from "../ui/Select";
+import { Button } from "../ui/Button";
 
 interface PurchaseFiltersProps {
   products: Product[];
@@ -8,7 +12,7 @@ interface PurchaseFiltersProps {
   setFilterDealer: (val: string) => void;
   filterProduct: number | "";
   setFilterProduct: (val: number | "") => void;
-  filterDate: string; // Changed: Single date only
+  filterDate: string;
   setFilterDate: (val: string) => void;
   onClear: () => void;
   hasActiveFilters: boolean;
@@ -26,63 +30,50 @@ export const PurchaseFilters: React.FC<PurchaseFiltersProps> = ({
   hasActiveFilters,
 }) => {
   return (
-    <div className="p-4 rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 shadow-sm space-y-4">
-      <div className="flex items-center gap-2 text-sm font-bold text-neutral-800 dark:text-white mb-2">
+    <Card className="p-4 shadow-sm space-y-4">
+      <div className="flex items-center gap-2 text-sm font-black text-neutral-800 dark:text-white mb-2 uppercase tracking-widest">
         <Filter size={16} /> Filters
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-        {/* Search Dealer - Takes up 2 columns */}
-        <div className="relative md:col-span-2">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 w-4 h-4" />
-          <input
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="md:col-span-2">
+          <Input
             placeholder="Search Dealer..."
             value={filterDealer}
             onChange={(e) => setFilterDealer(e.target.value)}
-            className="w-full rounded-lg py-2 pl-9 pr-3 text-sm bg-neutral-100 dark:bg-black border border-transparent focus:border-neutral-300 dark:focus:border-neutral-700 outline-none transition-colors"
+            icon={<Search size={16} />}
           />
         </div>
 
-        {/* Filter Product - Takes up 1 column */}
-        <div className="relative">
-          <Package className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 w-4 h-4" />
-          <select
-            value={filterProduct}
-            onChange={(e) => setFilterProduct(e.target.value ? Number(e.target.value) : "")}
-            className="w-full rounded-lg py-2 pl-9 pr-3 text-sm appearance-none bg-neutral-100 dark:bg-black border border-transparent focus:border-neutral-300 dark:focus:border-neutral-700 outline-none transition-colors"
-          >
-            <option value="">All Products</option>
-            {products.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name}
-              </option>
-            ))}
-          </select>
-        </div>
+        <Select
+          value={filterProduct}
+          onChange={(e) => setFilterProduct(e.target.value ? Number(e.target.value) : "")}
+          placeholder="All Products"
+          icon={<Package size={16} />}
+          options={products.map(p => ({ value: p.id, label: p.name }))}
+        />
 
-        {/* Filter Date - Single Date Picker - Takes up 1 column */}
-        <div className="relative">
-          <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 w-4 h-4 pointer-events-none" />
-          <input
-            type="date"
-            placeholder="Select Date"
-            value={filterDate}
-            onChange={(e) => setFilterDate(e.target.value)}
-            className="w-full rounded-lg py-2 pl-9 pr-3 text-sm bg-neutral-100 dark:bg-black border border-transparent focus:border-neutral-300 dark:focus:border-neutral-700 outline-none transition-colors appearance-none"
-          />
-        </div>
+        <Input
+          type="date"
+          value={filterDate}
+          onChange={(e) => setFilterDate(e.target.value)}
+          icon={<Calendar size={16} />}
+        />
       </div>
 
       {hasActiveFilters && (
         <div className="flex justify-end pt-2 border-t border-neutral-100 dark:border-neutral-800">
-          <button
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={onClear}
-            className="flex items-center gap-1 text-xs font-bold text-rose-500 hover:text-rose-600 transition-colors"
+            className="text-rose-500 hover:text-rose-600 font-black text-[10px] uppercase tracking-widest"
+            icon={<X size={14} />}
           >
-            <X size={12} /> Clear Filters
-          </button>
+            Clear Filters
+          </Button>
         </div>
       )}
-    </div>
+    </Card>
   );
 };

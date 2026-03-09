@@ -16,20 +16,37 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '../context/ThemeContext';
 import { Button } from './ui/Button';
+import { cn } from '../lib/utils';
 
 const SidebarItem = ({ to, icon: Icon, label, active, onClick }: { to: string, icon: any, label: string, active: boolean, onClick?: () => void }) => (
   <Link to={to} onClick={onClick} className="group block">
-    <div className={`flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-200 ${
+    <div className={cn(
+      "flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-200",
       active 
-        ? 'bg-black text-white dark:bg-white dark:text-black shadow-lg shadow-black/10 dark:shadow-white/5' 
-        : 'text-neutral-500 dark:text-neutral-400 hover:text-black dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-900'
-    }`}>
+        ? "bg-black text-white dark:bg-white dark:text-black shadow-lg shadow-black/10 dark:shadow-white/5"
+        : "text-neutral-500 dark:text-neutral-400 hover:text-black dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-900"
+    )}>
       <div className="flex items-center gap-3">
         <Icon size={18} strokeWidth={active ? 2.5 : 2} />
-        <span className="text-sm font-semibold">{label}</span>
+        <span className="text-sm font-bold tracking-tight">{label}</span>
       </div>
       {active && <ChevronRight size={14} />}
     </div>
+  </Link>
+);
+
+const BottomNavItem = ({ to, icon: Icon, label, active }: { to: string, icon: any, label: string, active: boolean }) => (
+  <Link to={to} className={cn(
+    "flex flex-col items-center justify-center flex-1 gap-1 py-2 transition-all active:scale-95",
+    active ? "text-black dark:text-white" : "text-neutral-400 dark:text-neutral-500"
+  )}>
+    <Icon size={20} strokeWidth={active ? 2.5 : 2} />
+    <span className={cn(
+      "text-[9px] font-black uppercase tracking-widest",
+      active ? "opacity-100" : "opacity-60"
+    )}>
+      {label}
+    </span>
   </Link>
 );
 
@@ -44,41 +61,24 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   }, [location.pathname]);
 
   const pageTitle = location.pathname === '/'
-    ? 'Overview'
-    : location.pathname.slice(1).charAt(0).toUpperCase() + location.pathname.slice(2).replace('/', ' / ');
+    ? 'Dashboard'
+    : location.pathname.slice(1).split('/')[0].toUpperCase();
 
   return (
-    <div className="flex min-h-screen bg-neutral-50 dark:bg-black text-neutral-900 dark:text-white transition-colors duration-300 overflow-x-hidden">
+    <div className="flex h-screen bg-neutral-50 dark:bg-black text-neutral-900 dark:text-white transition-colors duration-300 overflow-hidden">
 
-      {/* Sidebar Overlay (Mobile) */}
-      <AnimatePresence>
-        {isSidebarOpen && (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setIsSidebarOpen(false)}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
-          />
-        )}
-      </AnimatePresence>
-
-      {/* Sidebar */}
-      <aside className={`
-        fixed inset-y-0 left-0 w-72 border-r border-neutral-200 dark:border-neutral-900 flex flex-col bg-white dark:bg-black z-50 transition-transform duration-300 lg:translate-x-0
-        ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-      `}>
+      {/* Desktop Sidebar */}
+      <aside className={cn(
+        "fixed inset-y-0 left-0 w-72 border-r border-neutral-200 dark:border-neutral-900 flex flex-col bg-white dark:bg-black z-50 transition-transform duration-300 lg:translate-x-0 hidden lg:flex"
+      )}>
         <div className="p-6 flex flex-col h-full">
-          <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center justify-between mb-10">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-black dark:bg-white rounded-xl flex items-center justify-center shadow-xl">
                 <div className="w-5 h-5 bg-white dark:bg-black rounded-md rotate-45" />
               </div>
               <span className="text-2xl font-black tracking-tighter">ZENITH</span>
             </div>
-            <button onClick={() => setIsSidebarOpen(false)} className="lg:hidden text-neutral-400 hover:text-black dark:hover:text-white p-2">
-              <X size={20} />
-            </button>
           </div>
 
           <nav className="flex-1 space-y-1 overflow-y-auto pr-2 scrollbar-hide">
@@ -93,11 +93,11 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           </nav>
 
           <div className="mt-auto pt-6 border-t border-neutral-100 dark:border-neutral-900">
-            <div className="p-4 rounded-2xl bg-neutral-50 dark:bg-neutral-900/50 border border-neutral-200 dark:border-neutral-800">
-              <div className="text-[10px] text-neutral-400 dark:text-neutral-500 uppercase font-black mb-1">Status</div>
+            <div className="p-4 rounded-3xl bg-neutral-50 dark:bg-neutral-900/50 border border-neutral-200 dark:border-neutral-800">
+              <div className="text-[10px] text-neutral-400 dark:text-neutral-500 uppercase font-black mb-1.5 tracking-widest">System Status</div>
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
-                <span className="text-xs font-bold text-neutral-700 dark:text-neutral-300">Cloud Synced</span>
+                <span className="text-xs font-black text-neutral-700 dark:text-neutral-300 tracking-tight uppercase">Cloud Synced</span>
               </div>
             </div>
           </div>
@@ -105,17 +105,14 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       </aside>
 
       {/* Main Content Area */}
-      <div className="flex-1 lg:ml-72 flex flex-col min-w-0 w-full">
+      <div className="flex-1 lg:ml-72 flex flex-col min-w-0 h-full relative">
         {/* Header */}
-        <header className="h-16 lg:h-20 border-b border-neutral-200 dark:border-neutral-900 flex items-center justify-between px-4 lg:px-10 sticky top-0 bg-neutral-50/80 dark:bg-black/80 backdrop-blur-xl z-30">
+        <header className="h-16 lg:h-20 border-b border-neutral-200 dark:border-neutral-900 flex items-center justify-between px-6 lg:px-10 bg-neutral-50/80 dark:bg-black/80 backdrop-blur-xl z-30 shrink-0">
           <div className="flex items-center gap-3">
-            <button 
-              onClick={() => setIsSidebarOpen(true)}
-              className="lg:hidden p-2 text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-900 rounded-lg transition-colors"
-            >
-              <Menu size={20} />
-            </button>
-            <h1 className="text-sm lg:text-base font-bold text-neutral-800 dark:text-neutral-200 uppercase tracking-widest truncate max-w-[120px] sm:max-w-none">
+            <div className="lg:hidden w-8 h-8 bg-black dark:bg-white rounded-lg flex items-center justify-center shadow-lg">
+                <div className="w-4 h-4 bg-white dark:bg-black rounded-sm rotate-45" />
+            </div>
+            <h1 className="text-sm lg:text-base font-black text-neutral-800 dark:text-neutral-200 uppercase tracking-[0.2em] truncate max-w-[150px] sm:max-w-none">
               {pageTitle}
             </h1>
           </div>
@@ -125,28 +122,27 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
               variant="ghost" 
               size="sm" 
               onClick={toggleTheme}
-              className="w-9 h-9 lg:w-10 lg:h-10 p-0 rounded-full transition-transform active:scale-90"
+              className="w-10 h-10 p-0 rounded-full transition-transform active:scale-90"
               aria-label="Toggle Theme"
-            >
-              {theme === 'dark' ? <Sun size={18} className="text-neutral-400 hover:text-white" /> : <Moon size={18} className="text-neutral-500 hover:text-black" />}
-            </Button>
+              icon={theme === 'dark' ? <Sun size={18} className="text-neutral-400 hover:text-white" /> : <Moon size={18} className="text-neutral-500 hover:text-black" />}
+            />
 
             <div className="h-6 w-[1px] bg-neutral-200 dark:bg-neutral-800 mx-1 hidden sm:block" />
 
             <div className="flex items-center gap-2 lg:gap-3 px-1">
               <div className="hidden md:block text-right">
-                <div className="text-xs font-black text-neutral-900 dark:text-white uppercase tracking-tighter">STORE ADMIN</div>
-                <div className="text-[10px] text-neutral-400 leading-none">admin@zenith.in</div>
+                <div className="text-[10px] font-black text-neutral-900 dark:text-white uppercase tracking-widest">Admin Panel</div>
+                <div className="text-[9px] text-neutral-400 font-bold uppercase tracking-tight">admin@zenith.in</div>
               </div>
-              <div className="w-9 h-9 lg:w-10 lg:h-10 rounded-xl bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 flex items-center justify-center font-bold text-neutral-600 dark:text-neutral-400 shadow-sm">
+              <div className="w-10 h-10 rounded-xl bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 flex items-center justify-center font-black text-neutral-600 dark:text-neutral-400 shadow-sm text-sm">
                 SA
               </div>
             </div>
           </div>
         </header>
 
-        {/* Page Content */}
-        <main className="p-4 sm:p-6 lg:p-10 w-full">
+        {/* Scrollable Content Area */}
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-10 pb-24 lg:pb-10 scrollbar-thin scrollbar-thumb-neutral-200 dark:scrollbar-thumb-neutral-800">
           <div className="max-w-7xl mx-auto">
             <AnimatePresence mode="wait">
               <motion.div
@@ -161,6 +157,33 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             </AnimatePresence>
           </div>
         </main>
+
+        {/* Simple Bottom Navigation (Mobile Only) */}
+        <nav className="lg:hidden fixed bottom-0 left-0 right-0 h-16 bg-white dark:bg-neutral-900 border-t border-neutral-200 dark:border-neutral-800 flex items-center justify-around px-2 z-40 pb-safe">
+           <BottomNavItem to="/" icon={LayoutDashboard} label="Home" active={location.pathname === '/'} />
+           <BottomNavItem to="/inventory" icon={Package} label="Stock" active={location.pathname === '/inventory'} />
+
+           {/* Center Billing Button - Highlighted Simple Style */}
+           <Link to="/billing" className="flex flex-col items-center justify-center flex-1 gap-1 py-2 group">
+              <div className={cn(
+                "w-12 h-12 rounded-2xl flex items-center justify-center transition-all shadow-lg active:scale-90",
+                location.pathname === '/billing'
+                  ? "bg-black text-white dark:bg-white dark:text-black"
+                  : "bg-neutral-100 text-neutral-400 dark:bg-neutral-800 dark:text-neutral-500 group-hover:bg-neutral-200 dark:group-hover:bg-neutral-700"
+              )}>
+                <Receipt size={22} strokeWidth={2.5} />
+              </div>
+              <span className={cn(
+                "text-[9px] font-black uppercase tracking-widest transition-all",
+                location.pathname === '/billing' ? "text-black dark:text-white" : "text-neutral-400 dark:text-neutral-500 opacity-60"
+              )}>
+                Billing
+              </span>
+           </Link>
+
+           <BottomNavItem to="/purchases" icon={PlusCircle} label="Buy" active={location.pathname === '/purchases'} />
+           <BottomNavItem to="/categories" icon={Tag} label="Tags" active={location.pathname === '/categories'} />
+        </nav>
       </div>
     </div>
   );

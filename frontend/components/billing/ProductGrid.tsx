@@ -2,6 +2,10 @@ import React, { useState, useRef, useEffect } from "react";
 import { Product } from "../../types";
 import { Search, Barcode } from "lucide-react";
 import { useToast } from "../../context/ToastContext";
+import { Input } from "../ui/Input";
+import { Card } from "../ui/Card";
+import { Badge } from "../ui/Badge";
+import { cn } from "../../lib/utils";
 
 interface ProductGridProps {
   products: Product[];
@@ -46,54 +50,53 @@ export const ProductGrid: React.FC<ProductGridProps> = ({ products, onAddToCart 
   return (
     <div className="h-full flex flex-col space-y-4">
       {/* Search Bar */}
-      <div className="relative shrink-0 group">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 w-4 h-4 group-focus-within:text-black dark:group-focus-within:text-white transition-colors" />
-        <input
-          ref={inputRef}
-          placeholder="Search product or variant (Ctrl+F)"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          onKeyDown={handleKeyDown}
-          className="w-full rounded-xl py-3 pl-10 pr-10 text-sm outline-none bg-white dark:bg-neutral-900 shadow-sm border border-neutral-200 dark:border-neutral-800 focus:ring-2 focus:ring-neutral-200 dark:focus:ring-neutral-700 transition-all"
-        />
-        <div className="absolute right-3 top-1/2 -translate-y-1/2">
-           <Barcode size={16} className="text-neutral-300" />
-        </div>
-      </div>
+      <Input
+        ref={inputRef}
+        placeholder="Search product or variant (Ctrl+F)"
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        onKeyDown={handleKeyDown}
+        icon={<Search size={16} />}
+        className="shadow-sm"
+      />
 
       {/* Product Grid */}
-      <div className="flex-1 overflow-y-auto pr-2 pb-20 grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-2 content-start">
+      <div className="flex-1 overflow-y-auto pr-2 pb-20 grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 content-start scrollbar-thin scrollbar-thumb-neutral-200 dark:scrollbar-thumb-neutral-800">
         {filteredProducts.map((p) => (
           <button
             key={p.id}
             onClick={() => onAddToCart(p)}
             disabled={p.stock_quantity === 0}
-            className={`
-              p-3 rounded-xl text-left transition relative group flex flex-col justify-between
-              bg-white dark:bg-neutral-900 shadow-sm border border-neutral-200 dark:border-neutral-800 h-24 hover:shadow-md
-              ${p.stock_quantity === 0 ? "opacity-50 cursor-not-allowed" : "hover:border-black dark:hover:border-neutral-500"}
-            `}
+            className={cn(
+              "p-3 rounded-2xl text-left transition-all relative group flex flex-col justify-between h-28 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 hover:shadow-lg active:scale-95",
+              p.stock_quantity === 0 ? "opacity-50 cursor-not-allowed" : "hover:border-black dark:hover:border-white"
+            )}
           >
-            <div className="font-semibold text-xs sm:text-sm line-clamp-2 leading-tight">
-              {p.name}
+            <div className="space-y-0.5">
+              <div className="font-black text-xs sm:text-sm line-clamp-2 leading-tight tracking-tight">
+                {p.name}
+              </div>
               {p.variant && (
-                <span className="block text-[10px] text-neutral-400 font-normal mt-0.5">
+                <div className="text-[9px] text-neutral-400 font-black uppercase tracking-widest">
                   {p.variant}
-                </span>
+                </div>
               )}
             </div>
             <div className="mt-auto w-full flex justify-between items-end">
-              <div className={`text-[10px] font-bold ${p.stock_quantity <= 5 ? 'text-rose-500' : 'text-neutral-400'}`}>
-                {p.stock_quantity} in stock
-              </div>
-              <div className="text-[10px] font-black opacity-0 group-hover:opacity-100 transition-opacity bg-neutral-100 dark:bg-neutral-800 px-1.5 py-0.5 rounded uppercase">
+              <Badge
+                variant={p.stock_quantity <= 5 ? "error" : "default"}
+                className="px-1.5 py-0.5 text-[8px]"
+              >
+                {p.stock_quantity} IN STOCK
+              </Badge>
+              <div className="text-[9px] font-black opacity-0 group-hover:opacity-100 transition-opacity bg-black text-white dark:bg-white dark:text-black px-2 py-0.5 rounded-lg uppercase tracking-widest">
                 Add
               </div>
             </div>
           </button>
         ))}
         {filteredProducts.length === 0 && (
-          <div className="col-span-full py-10 text-center text-neutral-400 text-sm">
+          <div className="col-span-full py-20 text-center text-neutral-400 text-sm font-medium italic border-2 border-dashed border-neutral-100 dark:border-neutral-900 rounded-3xl">
             No products match your search.
           </div>
         )}

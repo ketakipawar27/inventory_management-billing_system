@@ -3,6 +3,10 @@ import { api } from "../../api";
 import { Product } from "../../types";
 import { PlusCircle, Store, Package } from "lucide-react";
 import { useToast } from "../../context/ToastContext";
+import { Card } from "../ui/Card";
+import { Input } from "../ui/Input";
+import { Select } from "../ui/Select";
+import { Button } from "../ui/Button";
 
 interface PurchaseFormProps {
   products: Product[];
@@ -79,105 +83,78 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({ products, onSuccess 
 
   return (
     <div className="lg:sticky lg:top-4">
-      <div className="rounded-3xl p-6 space-y-6 shadow-xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800">
+      <Card className="p-6 space-y-6 shadow-xl">
         <div>
-          <h2 className="text-lg font-bold flex items-center gap-2">
+          <h2 className="text-lg font-black tracking-tight flex items-center gap-2">
             <PlusCircle className="text-emerald-500" /> New Restock
           </h2>
-          <p className="text-xs text-neutral-500 mt-1">
+          <p className="text-xs text-neutral-500 mt-1 font-medium">
             Record inventory received from suppliers.
           </p>
         </div>
 
         <div className="space-y-4">
-          {/* Supplier Input */}
-          <div className="space-y-1">
-            <label className="text-xs font-bold text-neutral-400 uppercase">Supplier</label>
-            <div className="relative">
-              <Store className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 w-4 h-4" />
-              <input
-                placeholder="Dealer Name"
-                value={dealerName}
-                onChange={(e) => setDealerName(e.target.value)}
-                className="w-full rounded-xl py-3 pl-10 pr-4 text-sm outline-none bg-neutral-50 dark:bg-black border border-neutral-200 dark:border-neutral-800 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
-              />
-            </div>
-          </div>
+          <Input
+            label="Supplier"
+            placeholder="Dealer Name"
+            value={dealerName}
+            onChange={(e) => setDealerName(e.target.value)}
+            icon={<Store size={16} />}
+          />
 
-          {/* Product Select */}
-          <div className="space-y-1">
-            <label className="text-xs font-bold text-neutral-400 uppercase">Product</label>
-            <div className="relative">
-              <Package className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 w-4 h-4" />
-              <select
-                value={selectedProductId}
-                onChange={(e) => setSelectedProductId(Number(e.target.value))}
-                className="w-full rounded-xl py-3 pl-10 pr-4 text-sm outline-none appearance-none bg-neutral-50 dark:bg-black border border-neutral-200 dark:border-neutral-800 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
-              >
-                <option value="">Select product...</option>
-                {products.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name} (Cur: {p.stock_quantity})
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
+          <Select
+            label="Product"
+            value={selectedProductId}
+            onChange={(e) => setSelectedProductId(Number(e.target.value))}
+            placeholder="Select product..."
+            icon={<Package size={16} />}
+            options={products.map(p => ({
+              value: p.id,
+              label: `${p.name} (Cur: ${p.stock_quantity})`
+            }))}
+          />
 
-          {/* Quantity */}
-          <div className="space-y-1">
-            <label className="text-xs font-bold text-neutral-400 uppercase">Quantity</label>
-            <input
+          <Input
+            label="Quantity"
+            type="number"
+            placeholder="0"
+            value={quantity}
+            onFocus={(e) => e.target.select()}
+            onChange={(e) => handleQuantityChange(e.target.value)}
+          />
+
+          <div className="grid grid-cols-2 gap-4">
+            <Input
+              label="Unit Cost"
               type="number"
-              placeholder="0"
-              value={quantity}
+              placeholder="0.00"
+              value={pricePerUnit}
               onFocus={(e) => e.target.select()}
-              onChange={(e) => handleQuantityChange(e.target.value)}
-              className="w-full rounded-xl py-3 px-4 text-sm outline-none font-mono bg-neutral-50 dark:bg-black border border-neutral-200 dark:border-neutral-800 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
+              onChange={(e) => handleUnitPriceChange(e.target.value)}
+              icon={<span className="text-xs font-bold">₹</span>}
+            />
+            <Input
+              label="Total Cost"
+              type="number"
+              placeholder="0.00"
+              value={totalPrice}
+              onFocus={(e) => e.target.select()}
+              onChange={(e) => handleTotalPriceChange(e.target.value)}
+              icon={<span className="text-xs font-bold">₹</span>}
+              className="font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 border-emerald-100 dark:border-emerald-900"
             />
           </div>
 
-          {/* Prices */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <label className="text-xs font-bold text-neutral-400 uppercase">Unit Cost</label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 text-xs">₹</span>
-                <input
-                  type="number"
-                  placeholder="0.00"
-                  value={pricePerUnit}
-                  onFocus={(e) => e.target.select()}
-                  onChange={(e) => handleUnitPriceChange(e.target.value)}
-                  className="w-full rounded-xl py-3 pl-8 pr-4 text-sm outline-none font-mono bg-neutral-50 dark:bg-black border border-neutral-200 dark:border-neutral-800 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
-                />
-              </div>
-            </div>
-            <div className="space-y-1">
-              <label className="text-xs font-bold text-neutral-400 uppercase">Total Cost</label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 text-xs">₹</span>
-                <input
-                  type="number"
-                  placeholder="0.00"
-                  value={totalPrice}
-                  onFocus={(e) => e.target.select()}
-                  onChange={(e) => handleTotalPriceChange(e.target.value)}
-                  className="w-full rounded-xl py-3 pl-8 pr-4 text-sm outline-none font-mono font-bold bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
-                />
-              </div>
-            </div>
-          </div>
-
-          <button
+          <Button
             onClick={handleSubmit}
-            disabled={submitting || !dealerName || !selectedProductId}
-            className="w-full py-4 rounded-xl font-bold text-sm shadow-lg mt-4 bg-black text-white dark:bg-white dark:text-black hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50 disabled:scale-100 disabled:shadow-none"
+            isLoading={submitting}
+            disabled={!dealerName || !selectedProductId}
+            className="w-full py-4 shadow-lg mt-4"
           >
-            {submitting ? "Processing..." : "Confirm Purchase"}
-          </button>
+            Confirm Purchase
+          </Button>
         </div>
-      </div>
+      </Card>
     </div>
   );
 };
