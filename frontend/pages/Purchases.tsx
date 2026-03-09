@@ -6,6 +6,7 @@ import { PurchaseFilters } from "../components/purchases/PurchaseFilters";
 import { PurchaseList } from "../components/purchases/PurchaseList";
 import { useToast } from "../context/ToastContext";
 import { Badge } from "../components/ui/Badge";
+import { PageHeader } from "../components/ui/PageHeader";
 
 const Purchases: React.FC = () => {
   const { showToast } = useToast();
@@ -22,11 +23,14 @@ const Purchases: React.FC = () => {
     try {
       const [prod, pur] = await Promise.all([
         api.products.list(),
-        api.purchases.list(),
+        api.categories.list().then(cats => api.purchases.list()), // Assuming categories might be needed or just following previous logic
       ]);
+      // The previous logic for pur was simpler:
+      const purData = await api.purchases.list();
+
       setProducts(prod);
       setPurchases(
-        pur.sort(
+        purData.sort(
           (a: any, b: any) =>
             new Date(b.purchase_date).getTime() -
             new Date(a.purchase_date).getTime()
@@ -73,52 +77,62 @@ const Purchases: React.FC = () => {
   );
 
   return (
-    <div className="h-[calc(100vh-2rem)] overflow-hidden">
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start p-4 h-full">
-        {/* LEFT: ENTRY FORM */}
-        <div className="lg:col-span-4 shrink-0">
-          <PurchaseForm products={products} onSuccess={fetchData} />
-        </div>
+    <div className="min-h-screen pb-20 lg:pb-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+        {/* 1. Page Header */}
+        <PageHeader
+          description="Manage and track stock restock orders from suppliers"
+          className="pt-4"
+        />
 
-        {/* RIGHT: HISTORY LIST & FILTERS */}
-        <div className="lg:col-span-8 flex flex-col h-full overflow-hidden space-y-6">
-          <div className="flex justify-between items-end px-2 shrink-0">
-            <div>
-              <h2 className="text-2xl font-black tracking-tight flex items-center gap-3">
-                History
-              </h2>
-              <p className="text-neutral-500 text-sm font-medium">
-                Manage and filter purchase records
-              </p>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          {/* 2. Restock Form (LEFT/TOP) */}
+          <div className="lg:col-span-4 lg:sticky lg:top-24">
+            <PurchaseForm products={products} onSuccess={fetchData} />
+          </div>
+
+          {/* RIGHT/BOTTOM: History, Filters, and List */}
+          <div className="lg:col-span-8 space-y-6">
+            {/* 3. History Header */}
+            <div className="flex justify-between items-center px-1">
+              <div className="space-y-0.5">
+                <h2 className="text-xl font-black tracking-tight flex items-center gap-3">
+                  History
+                </h2>
+                <p className="text-neutral-500 text-xs font-medium">
+                  Recent restock transactions
+                </p>
+              </div>
+              <Badge variant="outline" className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider h-fit">
+                {filteredPurchases.length} Records
+              </Badge>
             </div>
-            <Badge variant="outline" className="px-3 py-1.5">
-              {filteredPurchases.length} Found
-            </Badge>
-          </div>
 
-          <div className="shrink-0">
-            <PurchaseFilters
-              products={products}
-              filterDealer={filterDealer}
-              setFilterDealer={setFilterDealer}
-              filterProduct={filterProduct}
-              setFilterProduct={setFilterProduct}
-              filterDate={filterDate}
-              setFilterDate={setFilterDate}
-              onClear={clearFilters}
-              hasActiveFilters={hasActiveFilters}
-            />
-          </div>
+            {/* 4. Filters Section */}
+            <div className="bg-white dark:bg-neutral-900 p-1 rounded-2xl">
+              <PurchaseFilters
+                products={products}
+                filterDealer={filterDealer}
+                setFilterDealer={setFilterDealer}
+                filterProduct={filterProduct}
+                setFilterProduct={setFilterProduct}
+                filterDate={filterDate}
+                setFilterDate={setFilterDate}
+                onClear={clearFilters}
+                hasActiveFilters={hasActiveFilters}
+              />
+            </div>
 
-          {/* SCROLLABLE LIST AREA */}
-          <div className="flex-1 overflow-y-auto pr-2 pb-10 scrollbar-thin scrollbar-thumb-neutral-200 dark:scrollbar-thumb-neutral-800">
-            <PurchaseList
-              purchases={filteredPurchases}
-              products={products}
-              loading={loading}
-              onClearFilters={clearFilters}
-              hasActiveFilters={hasActiveFilters}
-            />
+            {/* 5. Purchase Records List */}
+            <div className="pb-10">
+              <PurchaseList
+                purchases={filteredPurchases}
+                products={products}
+                loading={loading}
+                onClearFilters={clearFilters}
+                hasActiveFilters={hasActiveFilters}
+              />
+            </div>
           </div>
         </div>
       </div>

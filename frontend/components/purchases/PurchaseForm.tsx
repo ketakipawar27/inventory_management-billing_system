@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { api } from "../../api";
 import { Product } from "../../types";
-import { PlusCircle, Store, Package } from "lucide-react";
+import { PlusCircle, Store, Package, IndianRupee } from "lucide-react";
 import { useToast } from "../../context/ToastContext";
 import { Card } from "../ui/Card";
 import { Input } from "../ui/Input";
@@ -82,74 +82,82 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({ products, onSuccess 
   };
 
   return (
-    <div className="lg:sticky lg:top-4">
-      <Card className="p-6 space-y-6 shadow-xl">
-        <div>
-          <h2 className="text-lg font-black tracking-tight flex items-center gap-2">
-            <PlusCircle className="text-emerald-500" /> New Restock
-          </h2>
-          <p className="text-xs text-neutral-500 mt-1 font-medium">
-            Record inventory received from suppliers.
-          </p>
+    <div className="lg:sticky lg:top-24">
+      <Card className="p-4 sm:p-5 shadow-sm border-neutral-200/60 dark:border-neutral-800/60 rounded-2xl bg-white dark:bg-neutral-900">
+        {/* 1. Improved Visual Hierarchy */}
+        <div className="flex items-center gap-3 mb-6 px-1">
+          <div className="p-2 rounded-xl bg-black text-white dark:bg-white dark:text-black shadow-lg shadow-black/5 dark:shadow-white/5">
+            <PlusCircle size={16} strokeWidth={2.5} />
+          </div>
+          <div className="space-y-0.5">
+            <h2 className="text-sm font-black tracking-tight text-neutral-900 dark:text-white uppercase">New Restock</h2>
+            <p className="text-[10px] text-neutral-400 font-bold uppercase tracking-widest leading-none">Record received inventory</p>
+          </div>
         </div>
 
+        {/* 2 & 3. Compact Spacing & Stronger Label Contrast */}
         <div className="space-y-4">
           <Input
-            label="Supplier"
+            label="SUPPLIER"
             placeholder="Dealer Name"
             value={dealerName}
             onChange={(e) => setDealerName(e.target.value)}
-            icon={<Store size={16} />}
+            icon={<Store size={14} className="text-neutral-400" />}
+            className="h-10 text-xs bg-neutral-50/50 dark:bg-black/40 border-neutral-100 dark:border-neutral-800"
           />
 
           <Select
-            label="Product"
+            label="PRODUCT"
             value={selectedProductId}
             onChange={(e) => setSelectedProductId(Number(e.target.value))}
             placeholder="Select product..."
-            icon={<Package size={16} />}
+            icon={<Package size={14} className="text-neutral-400" />}
             options={products.map(p => ({
               value: p.id,
-              label: `${p.name} (Cur: ${p.stock_quantity})`
+              label: `${p.name} (${p.stock_quantity})`
             }))}
+            className="h-10 text-xs"
           />
 
           <Input
-            label="Quantity"
+            label="QUANTITY"
             type="number"
             placeholder="0"
             value={quantity}
             onFocus={(e) => e.target.select()}
             onChange={(e) => handleQuantityChange(e.target.value)}
+            className="h-10 text-xs"
           />
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-3">
             <Input
-              label="Unit Cost"
+              label="UNIT COST"
               type="number"
               placeholder="0.00"
               value={pricePerUnit}
               onFocus={(e) => e.target.select()}
               onChange={(e) => handleUnitPriceChange(e.target.value)}
-              icon={<span className="text-xs font-bold">₹</span>}
+              icon={<IndianRupee size={12} className="text-neutral-400" />}
+              className="h-10 text-xs"
             />
             <Input
-              label="Total Cost"
+              label="TOTAL COST"
               type="number"
               placeholder="0.00"
               value={totalPrice}
               onFocus={(e) => e.target.select()}
               onChange={(e) => handleTotalPriceChange(e.target.value)}
-              icon={<span className="text-xs font-bold">₹</span>}
-              className="font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 border-emerald-100 dark:border-emerald-900"
+              icon={<IndianRupee size={12} className="text-emerald-500" />}
+              className="h-10 text-xs font-black text-emerald-600 dark:text-emerald-400 bg-emerald-50/30 dark:bg-emerald-500/5 border-emerald-100/50 dark:border-emerald-500/20"
             />
           </div>
 
+          {/* 4. Primary Action Emphasis */}
           <Button
             onClick={handleSubmit}
             isLoading={submitting}
-            disabled={!dealerName || !selectedProductId}
-            className="w-full py-4 shadow-lg mt-4"
+            disabled={!dealerName || !selectedProductId || !quantity}
+            className="w-full h-11 shadow-sm mt-2 text-[10px] font-black uppercase tracking-[0.2em] bg-neutral-900 dark:bg-white text-white dark:text-black rounded-xl hover:scale-[1.01] active:scale-[0.99] transition-all"
           >
             Confirm Purchase
           </Button>
