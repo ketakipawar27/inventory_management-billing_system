@@ -1,14 +1,15 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { api } from "../api";
 import { Product } from "../types";
 import { ProductGrid } from "../components/billing/ProductGrid";
 import { BillCart, CartItem } from "../components/billing/BillCart";
 import { BillForm } from "../components/billing/BillForm";
-import { BillHistory } from "../components/billing/BillHistory"; // Import the new component
-import { ShoppingCart, CheckCircle2, History, Plus } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { BillHistory } from "../components/billing/BillHistory";
+import { ShoppingCart, History, Plus } from "lucide-react";
+import { useToast } from "../context/ToastContext";
 
 const Billing: React.FC = () => {
+  const { showToast } = useToast();
   // Mode State: 'create' or 'history'
   const [mode, setMode] = useState<"create" | "history">("create");
 
@@ -22,17 +23,26 @@ const Billing: React.FC = () => {
   const [paymentMethod, setPaymentMethod] = useState<"cash" | "online" | "pending">("cash");
 
   const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
+
+  const fetchProducts = useCallback(async () => {
+    try {
+      const data = await api.products.list();
+      setProducts(data.filter(p => p.is_active));
+    } catch (err) {
+      showToast("Failed to fetch products", "error");
+    }
+  }, [showToast]);
 
   useEffect(() => {
-    api.products.list().then(setProducts).catch(console.error);
-  }, []);
+    fetchProducts();
+  }, [fetchProducts]);
 
   /* ---------------- LOGIC ---------------- */
 
   const addToCart = (product: Product) => {
     if (cart.find((c) => c.product.id === product.id)) return;
     setCart([...cart, { product, quantity: 1, price: product.unit_price }]);
+    showToast(`${product.name} added to cart`, "info");
   };
 
   const updateQuantity = (id: number, value: string) => {
@@ -42,6 +52,9 @@ const Billing: React.FC = () => {
         if (value === "") return { ...i, quantity: "" };
         const qty = Number(value);
         const safeQty = Math.min(qty, i.product.stock_quantity);
+        if (qty > i.product.stock_quantity) {
+          showToast(`Only ${i.product.stock_quantity} units available in stock`, "info");
+        }
         return { ...i, quantity: safeQty };
       })
     );
@@ -68,7 +81,9 @@ const Billing: React.FC = () => {
   const total = cart.reduce((sum, i) => sum + (Number(i.quantity) || 0) * i.price, 0);
 
   const handleSubmit = async () => {
-    if (!customerName || cart.length === 0) return;
+    // 1. Prevent double submission and empty cart
+    if (loading || !customerName || cart.length === 0) return;
+
     setLoading(true);
     try {
       await api.bills.create({
@@ -84,16 +99,18 @@ const Billing: React.FC = () => {
         })),
       });
 
-      // Reset
+      // 2. Refresh products to update stock quantities locally
+      await fetchProducts();
+
+      // 3. Reset UI
       setCart([]);
       setCustomerName("");
       setCustomerPhone("");
       setCustomerAddress("");
       setPaymentMethod("cash");
-      setSuccess(true);
-      setTimeout(() => setSuccess(false), 3000);
+      showToast("Bill generated successfully", "success");
     } catch (err: any) {
-      alert(err.message || "Billing failed");
+      showToast(err.message || "Billing failed", "error");
     } finally {
       setLoading(false);
     }
@@ -180,21 +197,6 @@ const Billing: React.FC = () => {
             </div>
          </div>
       )}
-
-      {/* SUCCESS TOAST */}
-      <AnimatePresence>
-        {success && (
-          <motion.div
-            initial={{ y: 50, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 50, opacity: 0 }}
-            className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 bg-black text-white dark:bg-white dark:text-black shadow-2xl px-6 py-3 rounded-full font-bold flex items-center gap-2 text-sm"
-          >
-            <CheckCircle2 size={18} className="text-emerald-500" />
-            Bill Generated
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 };

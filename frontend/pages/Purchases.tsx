@@ -1,21 +1,23 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { api } from "../api";
 import { Product, Purchase } from "../types";
 import { PurchaseForm } from "../components/purchases/PurchaseForm";
 import { PurchaseFilters } from "../components/purchases/PurchaseFilters";
 import { PurchaseList } from "../components/purchases/PurchaseList";
+import { useToast } from "../context/ToastContext";
 
 const Purchases: React.FC = () => {
+  const { showToast } = useToast();
   const [products, setProducts] = useState<Product[]>([]);
   const [purchases, setPurchases] = useState<Purchase[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Filter State (Updated to Single Date)
+  // Filter State
   const [filterDealer, setFilterDealer] = useState("");
   const [filterProduct, setFilterProduct] = useState<number | "">("");
   const [filterDate, setFilterDate] = useState("");
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       const [prod, pur] = await Promise.all([
         api.products.list(),
@@ -29,29 +31,28 @@ const Purchases: React.FC = () => {
             new Date(a.purchase_date).getTime()
         )
       );
+    } catch (err) {
+      showToast("Failed to fetch purchase data", "error");
     } finally {
       setLoading(false);
     }
-  };
+  }, [showToast]);
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [fetchData]);
 
-  // Filter Logic (Memoized for performance)
+  // Filter Logic
   const filteredPurchases = useMemo(() => {
     return purchases.filter((p) => {
-      // 1. Dealer Name
       const matchDealer = p.dealer_name
         .toLowerCase()
         .includes(filterDealer.toLowerCase());
 
-      // 2. Product (Checks if ANY item in the purchase matches the ID)
       const matchProduct =
         filterProduct === "" ||
         p.items.some((item) => item.product_id === filterProduct);
 
-      // 3. Date (Exact Match)
       const matchDate = !filterDate || p.purchase_date === filterDate;
 
       return matchDealer && matchProduct && matchDate;
@@ -71,47 +72,54 @@ const Purchases: React.FC = () => {
   );
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start p-4">
-      {/* LEFT: ENTRY FORM */}
-      <div className="lg:col-span-4">
-        <PurchaseForm products={products} onSuccess={fetchData} />
-      </div>
-
-      {/* RIGHT: HISTORY LIST & FILTERS */}
-      <div className="lg:col-span-8 space-y-6">
-        <div className="flex justify-between items-end px-2">
-          <div>
-            <h2 className="text-2xl font-black flex items-center gap-3">
-              History
-            </h2>
-            <p className="text-neutral-500 text-sm">
-              Manage and filter purchase records
-            </p>
-          </div>
-          <div className="text-xs font-bold px-3 py-1 bg-neutral-100 dark:bg-neutral-800 rounded-full">
-            {filteredPurchases.length} Found
-          </div>
+    <div className="h-[calc(100vh-2rem)] overflow-hidden">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start p-4 h-full">
+        {/* LEFT: ENTRY FORM */}
+        <div className="lg:col-span-4 shrink-0">
+          <PurchaseForm products={products} onSuccess={fetchData} />
         </div>
 
-        <PurchaseFilters
-          products={products}
-          filterDealer={filterDealer}
-          setFilterDealer={setFilterDealer}
-          filterProduct={filterProduct}
-          setFilterProduct={setFilterProduct}
-          filterDate={filterDate}
-          setFilterDate={setFilterDate}
-          onClear={clearFilters}
-          hasActiveFilters={hasActiveFilters}
-        />
+        {/* RIGHT: HISTORY LIST & FILTERS */}
+        <div className="lg:col-span-8 flex flex-col h-full overflow-hidden space-y-6">
+          <div className="flex justify-between items-end px-2 shrink-0">
+            <div>
+              <h2 className="text-2xl font-black flex items-center gap-3">
+                History
+              </h2>
+              <p className="text-neutral-500 text-sm">
+                Manage and filter purchase records
+              </p>
+            </div>
+            <div className="text-xs font-bold px-3 py-1 bg-neutral-100 dark:bg-neutral-800 rounded-full">
+              {filteredPurchases.length} Found
+            </div>
+          </div>
 
-        <PurchaseList
-          purchases={filteredPurchases}
-          products={products}
-          loading={loading}
-          onClearFilters={clearFilters}
-          hasActiveFilters={hasActiveFilters}
-        />
+          <div className="shrink-0">
+            <PurchaseFilters
+              products={products}
+              filterDealer={filterDealer}
+              setFilterDealer={setFilterDealer}
+              filterProduct={filterProduct}
+              setFilterProduct={setFilterProduct}
+              filterDate={filterDate}
+              setFilterDate={setFilterDate}
+              onClear={clearFilters}
+              hasActiveFilters={hasActiveFilters}
+            />
+          </div>
+
+          {/* SCROLLABLE LIST AREA */}
+          <div className="flex-1 overflow-y-auto pr-2 pb-10 scrollbar-thin scrollbar-thumb-neutral-200 dark:scrollbar-thumb-neutral-800">
+            <PurchaseList
+              purchases={filteredPurchases}
+              products={products}
+              loading={loading}
+              onClearFilters={clearFilters}
+              hasActiveFilters={hasActiveFilters}
+            />
+          </div>
+        </div>
       </div>
     </div>
   );

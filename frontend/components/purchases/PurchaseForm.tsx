@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { api } from "../../api";
 import { Product } from "../../types";
-import { PlusCircle, Store, Package, CheckCircle2 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { PlusCircle, Store, Package } from "lucide-react";
+import { useToast } from "../../context/ToastContext";
 
 interface PurchaseFormProps {
   products: Product[];
@@ -10,6 +10,7 @@ interface PurchaseFormProps {
 }
 
 export const PurchaseForm: React.FC<PurchaseFormProps> = ({ products, onSuccess }) => {
+  const { showToast } = useToast();
   const [dealerName, setDealerName] = useState("");
   const [selectedProductId, setSelectedProductId] = useState<number | "">("");
   const [quantity, setQuantity] = useState<number | "">("");
@@ -17,7 +18,6 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({ products, onSuccess 
   const [totalPrice, setTotalPrice] = useState<number | "">("");
   
   const [submitting, setSubmitting] = useState(false);
-  const [showToast, setShowToast] = useState(false);
 
   // Auto-Calculation Logic
   const handleUnitPriceChange = (val: string) => {
@@ -68,13 +68,10 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({ products, onSuccess 
       setPricePerUnit("");
       setTotalPrice("");
       
-      // Trigger Success UI & Parent Refresh
-      setShowToast(true);
-      setTimeout(() => setShowToast(false), 3000);
+      showToast("Inventory updated successfully", "success");
       onSuccess();
-    } catch (err) {
-      console.error(err);
-      alert("Failed to record restock");
+    } catch (err: any) {
+      showToast(err.message || "Failed to record restock", "error");
     } finally {
       setSubmitting(false);
     }
@@ -181,23 +178,6 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({ products, onSuccess 
           </button>
         </div>
       </div>
-
-      <AnimatePresence>
-        {showToast && (
-          <motion.div
-            initial={{ y: 50, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 50, opacity: 0 }}
-            className="fixed bottom-8 right-8 z-50 bg-emerald-600 text-white shadow-2xl px-6 py-4 rounded-2xl font-bold flex items-center gap-3"
-          >
-            <CheckCircle2 className="text-white" />
-            <div>
-              <div className="text-sm">Success</div>
-              <div className="text-xs opacity-80 font-normal">Inventory updated successfully</div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 };

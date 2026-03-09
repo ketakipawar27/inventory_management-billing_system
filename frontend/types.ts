@@ -10,41 +10,44 @@ export interface Product {
   name: string;
   category: number | Category;
   sku: string;
-  price: number;
+  variant?: string;
+  unit_price: number;
   stock_quantity: number;
+  is_active: boolean;
   description?: string;
 }
 
 export interface PurchaseItem {
-  product: number;
+  product_id: number;
   quantity: number;
-  unit_price: number;
+  price_per_unit: number;
 }
 
 export interface Purchase {
   id: number;
+  dealer_name: string;
   purchase_date: string;
   items: PurchaseItem[];
   total_amount: number;
 }
 
 export interface BillItem {
-  product: number; // The ID
-  product_name?: string; // Optional (if backend sends it)
+  product_id: number;
+  product_name: string;
   quantity: number;
-  unit_price: number;
-  total_price: number; // UI uses this
+  price_per_unit: number;
+  total_price: number;
 }
 
 export interface Bill {
   id: number;
   bill_date: string;
-  customer_name: string; // Removed optional '?' to match typical usage
+  customer_name: string;
   customer_phone?: string;
   customer_address?: string;
-  items: BillItem[]; // ✅ Correct name is 'items'
+  items_detail: BillItem[]; // This matches the backend "items_detail" for GET requests
   total_amount: number;
-  payment_method: "cash" | "online" | "pending"; // Added this missing field
+  payment_method: "cash" | "online" | "pending";
 }
 
 export interface ApiError {
