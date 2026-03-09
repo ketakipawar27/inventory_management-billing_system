@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Card } from "../components/ui/Card";
 import { Button } from "../components/ui/Button";
 import { Input } from "../components/ui/Input";
-import { Badge } from "../components/ui/Badge";
+import { PageHeader } from "../components/ui/PageHeader";
 
 const Categories: React.FC = () => {
   const { showToast } = useToast();
@@ -83,29 +83,37 @@ const Categories: React.FC = () => {
   );
 
   return (
-    <div className="space-y-8 pb-20 lg:pb-0">
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        {/* Create Form */}
-        <div className="lg:col-span-4 sticky top-24">
-          <Card className="p-6 sm:p-8 shadow-xl space-y-6">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-black text-white dark:bg-white dark:text-black">
-                <Plus size={20} />
+    <div className="space-y-6 pb-20 h-full overflow-y-auto scrollbar-thin scrollbar-thumb-neutral-200 dark:scrollbar-thumb-neutral-800">
+      {/* 1. Page Header - Consistency with Inventory & Dashboard */}
+      <PageHeader
+        description="Manage and organize your product groups"
+        className="mb-4"
+      />
+
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+
+        {/* 2. New Category Form Card (Left Column) - Compact Refinement */}
+        <div className="lg:col-span-4 lg:sticky lg:top-0">
+          <Card className="p-5 shadow-sm border-neutral-200/60 dark:border-neutral-800/60 rounded-2xl bg-white dark:bg-neutral-900">
+            <div className="flex items-center gap-2.5 mb-5">
+              <div className="p-1.5 rounded-lg bg-black text-white dark:bg-white dark:text-black">
+                <Plus size={14} strokeWidth={3} />
               </div>
-              <h2 className="text-lg font-black tracking-tight">New Category</h2>
+              <h2 className="font-black text-[11px] tracking-wider uppercase">New Category</h2>
             </div>
 
-            <form onSubmit={handleCreate} className="space-y-6">
+            <form onSubmit={handleCreate} className="space-y-5">
               <Input
-                label="Category Name"
+                label="CATEGORY NAME"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="E.g. Stationery, Packaging"
+                placeholder="E.g. Electronics"
+                className="h-10 text-xs bg-neutral-100/50 dark:bg-black border-transparent focus:border-neutral-200 dark:focus:border-neutral-800 rounded-xl px-3"
               />
 
               <Button
                 type="submit"
-                className="w-full py-4 shadow-lg"
+                className="w-full h-10 shadow-sm font-black text-[10px] uppercase tracking-widest rounded-xl"
                 isLoading={submitting}
                 disabled={!name.trim()}
               >
@@ -115,102 +123,122 @@ const Categories: React.FC = () => {
           </Card>
         </div>
 
-        {/* List Section */}
+        {/* 3. List & Search Section (Right Column) */}
         <div className="lg:col-span-8 space-y-6">
-          <div className="flex flex-col sm:flex-row gap-4 sm:items-center justify-between px-2">
+          {/* Balanced Search Field */}
+          <div className="max-w-md">
             <Input
               placeholder="Search categories..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              icon={<Search size={16} />}
-              className="max-w-sm"
+              icon={<Search size={16} className="text-neutral-400" />}
+              className="h-10 text-xs shadow-sm bg-neutral-100/50 dark:bg-black border-transparent rounded-xl px-3"
             />
-            <Badge variant="outline" className="px-3 py-1.5 h-fit">
-              {filteredCategories.length} Total
-            </Badge>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <AnimatePresence mode="popLayout">
-              {loading ? (
-                Array.from({ length: 4 }).map((_, i) => (
-                  <div key={i} className="h-32 rounded-3xl animate-pulse bg-neutral-200 dark:bg-neutral-900" />
-                ))
-              ) : filteredCategories.length === 0 ? (
-                <div className="col-span-full py-20 text-center text-neutral-400 italic bg-white dark:bg-neutral-900 rounded-3xl border border-dashed border-neutral-200 dark:border-neutral-800">
-                  No categories found.
-                </div>
-              ) : (
-                filteredCategories.map((category) => (
-                  <motion.div
-                    layout
-                    key={category.id}
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.9 }}
-                  >
-                    <Card hoverable className="p-5 group">
-                      <div className="flex justify-between items-start mb-4">
-                        <div className="p-3 rounded-2xl bg-neutral-100 dark:bg-neutral-800 text-neutral-500 group-hover:text-black dark:group-hover:text-white transition-colors">
-                          <Folder size={20} />
-                        </div>
+          <div className="space-y-4">
+            {/* Stronger Header Hierarchy */}
+            <div className="flex items-center justify-between px-1">
+              <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">
+                Category List
+              </h2>
+              <span className="text-[10px] font-bold text-neutral-500 bg-neutral-100 dark:bg-neutral-800 px-2 py-0.5 rounded-full border border-neutral-200 dark:border-neutral-700/50">
+                {filteredCategories.length} Total
+              </span>
+            </div>
 
-                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                          {editingId === category.id ? (
-                            <>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleUpdate(category.id)}
-                                className="text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-500/10"
-                                icon={<Check size={16} />}
-                              />
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => setEditingId(null)}
-                                icon={<X size={16} />}
-                              />
-                            </>
-                          ) : (
-                            <>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => { setEditingId(category.id); setEditName(category.name); }}
-                                icon={<Edit2 size={16} />}
-                              />
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleDelete(category.id)}
-                                className="text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10"
-                                icon={<Trash2 size={16} />}
-                              />
-                            </>
-                          )}
-                        </div>
-                      </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <AnimatePresence mode="popLayout">
+                {loading ? (
+                  Array.from({ length: 4 }).map((_, i) => (
+                    <div key={i} className="h-14 rounded-2xl animate-pulse bg-neutral-100 dark:bg-neutral-900" />
+                  ))
+                ) : filteredCategories.length === 0 ? (
+                  <div className="col-span-full py-12 text-center text-neutral-400 text-[10px] font-black uppercase tracking-widest bg-white dark:bg-neutral-900 rounded-2xl border border-dashed border-neutral-200 dark:border-neutral-800">
+                    No categories found.
+                  </div>
+                ) : (
+                  filteredCategories.map((category) => (
+                    <motion.div
+                      layout
+                      key={category.id}
+                      initial={{ opacity: 0, y: 5 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.98 }}
+                      transition={{ duration: 0.15 }}
+                    >
+                      <Card className="p-3 group relative overflow-hidden border-neutral-200/60 dark:border-neutral-800/60 shadow-sm rounded-xl bg-white dark:bg-neutral-900">
+                        <div className="flex items-center gap-3">
+                          {/* Compact & Balanced Icon */}
+                          <div className="shrink-0 w-8 h-8 rounded-lg bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center text-neutral-400 group-hover:text-black dark:group-hover:text-white transition-all">
+                            <Folder size={16} />
+                          </div>
 
-                      {editingId === category.id ? (
-                        <Input
-                          autoFocus
-                          value={editName}
-                          onChange={(e) => setEditName(e.target.value)}
-                          onKeyDown={(e) => e.key === 'Enter' && handleUpdate(category.id)}
-                          size="sm"
-                        />
-                      ) : (
-                        <div>
-                          <h3 className="font-black text-neutral-900 dark:text-white truncate tracking-tight">{category.name}</h3>
-                          <p className="text-[10px] text-neutral-400 font-bold uppercase tracking-widest mt-0.5">Category ID: #{category.id}</p>
+                          <div className="flex-1 min-w-0">
+                            {editingId === category.id ? (
+                              <div className="flex items-center gap-2">
+                                <Input
+                                  autoFocus
+                                  value={editName}
+                                  onChange={(e) => setEditName(e.target.value)}
+                                  onKeyDown={(e) => e.key === 'Enter' && handleUpdate(category.id)}
+                                  className="h-8 py-0.5 text-xs border-neutral-200 rounded-lg px-2"
+                                />
+                                <div className="flex gap-1 shrink-0">
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleUpdate(category.id)}
+                                    className="h-8 w-8 p-0 text-emerald-600 hover:bg-emerald-50"
+                                    icon={<Check size={14} />}
+                                  />
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => setEditingId(null)}
+                                    className="h-8 w-8 p-0"
+                                    icon={<X size={14} />}
+                                  />
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="flex items-center justify-between gap-2">
+                                <div className="min-w-0">
+                                  <h3 className="font-bold text-neutral-900 dark:text-white truncate text-[13px] tracking-tight leading-none">
+                                    {category.name}
+                                  </h3>
+                                  <p className="text-[9px] text-neutral-400 font-bold uppercase tracking-tight mt-1">
+                                    ID: #{category.id}
+                                  </p>
+                                </div>
+
+                                {/* Actions with tighter grouping */}
+                                <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => { setEditingId(category.id); setEditName(category.name); }}
+                                    className="h-7 w-7 p-0 text-neutral-400 hover:text-black dark:hover:text-white rounded-md"
+                                    icon={<Edit2 size={12} />}
+                                  />
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleDelete(category.id)}
+                                    className="h-7 w-7 p-0 text-neutral-400 hover:text-rose-500 rounded-md"
+                                    icon={<Trash2 size={12} />}
+                                  />
+                                </div>
+                              </div>
+                            )}
+                          </div>
                         </div>
-                      )}
-                    </Card>
-                  </motion.div>
-                ))
-              )}
-            </AnimatePresence>
+                      </Card>
+                    </motion.div>
+                  ))
+                )}
+              </AnimatePresence>
+            </div>
           </div>
         </div>
       </div>
