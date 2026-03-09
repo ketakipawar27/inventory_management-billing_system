@@ -11,6 +11,7 @@ import { Badge } from "../components/ui/Badge";
 import { Modal } from "../components/ui/Modal";
 import { PageHeader } from "../components/ui/PageHeader";
 import { EmptyState } from "../components/ui/EmptyState";
+import { cn } from "../lib/utils";
 
 const Inventory: React.FC = () => {
   const { showToast } = useToast();
@@ -99,7 +100,6 @@ const Inventory: React.FC = () => {
       variant: form.variant.trim() || null,
       category: Number(form.category),
       unit_price: Number(form.unit_price) || 0,
-      // On creation/edit, we update BOTH avg and latest price to the manually entered value
       purchase_price: Number(form.purchase_price) || 0,
       latest_purchase_price: Number(form.purchase_price) || 0,
       min_stock: Number(form.min_stock) || 0
@@ -132,97 +132,103 @@ const Inventory: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 pb-20 lg:pb-0 h-full overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-neutral-200 dark:scrollbar-thumb-neutral-800">
+    <div className="space-y-5 pb-10 h-full overflow-y-auto scrollbar-thin scrollbar-thumb-neutral-200 dark:scrollbar-thumb-neutral-800">
       <PageHeader
         description="Manage your products, stock levels, and pricing."
+        className="mb-4"
         action={
           <Button
             onClick={openCreate}
-            icon={<Plus size={18} />}
-            className="shadow-xl"
+            icon={<Plus size={16} />}
+            className="h-9 px-4 text-xs shadow-xl"
           >
             Add Product
           </Button>
         }
       />
 
-      <Input
-        placeholder="Search name, category, variant..."
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        icon={<Search size={18} />}
-        className="max-w-md shadow-sm"
-      />
+      <div className="max-w-md">
+        <Input
+          placeholder="Search products..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          icon={<Search size={16} />}
+          className="h-10 text-xs shadow-sm"
+        />
+      </div>
 
       {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {[1, 2, 3, 4, 5, 6].map(i => (
-            <div key={i} className="h-40 rounded-[2rem] bg-neutral-100 dark:bg-neutral-900 animate-pulse" />
+            <div key={i} className="h-32 rounded-2xl bg-neutral-100 dark:bg-neutral-900 animate-pulse" />
           ))}
         </div>
       ) : filteredProducts.length === 0 ? (
         <EmptyState
           icon={Package}
-          title={search ? "No products found" : "Your inventory is empty"}
-          description={search ? `We couldn't find anything matching "${search}"` : "Start by adding your first product to the system."}
+          title={search ? "No matches" : "Inventory empty"}
+          description={search ? `No products for "${search}"` : "Start by adding products."}
           action={!search && (
-            <Button onClick={openCreate} icon={<Plus size={18} />}>
-              Add First Product
+            <Button onClick={openCreate} size="sm" icon={<Plus size={16} />}>
+              Add Product
             </Button>
           )}
         />
       ) : (
         <>
           {/* Desktop Table View */}
-          <div className="hidden lg:block overflow-hidden rounded-[2rem] border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-sm">
-            <table className="w-full text-sm text-left">
-              <thead className="bg-neutral-50 dark:bg-neutral-800/50 border-b border-neutral-200 dark:border-neutral-800">
+          <div className="hidden lg:block overflow-hidden rounded-2xl border border-neutral-200/60 dark:border-neutral-800/60 bg-white dark:bg-neutral-900 shadow-sm">
+            <table className="w-full text-sm text-left border-collapse">
+              <thead className="bg-neutral-50 dark:bg-neutral-800/50 border-b border-neutral-100 dark:border-neutral-800">
                 <tr>
-                  <th className="p-6 font-black uppercase tracking-widest text-[10px] text-neutral-400">Product Info</th>
-                  <th className="p-6 font-black uppercase tracking-widest text-[10px] text-neutral-400">Category</th>
-                  <th className="p-6 font-black uppercase tracking-widest text-[10px] text-neutral-400 text-center">Unit Price</th>
-                  <th className="p-6 font-black uppercase tracking-widest text-[10px] text-neutral-400 text-center">Stock</th>
-                  <th className="p-6 font-black uppercase tracking-widest text-[10px] text-neutral-400 text-right">Actions</th>
+                  <th className="px-4 py-3 font-black uppercase tracking-wider text-[9px] text-neutral-400">Product Info</th>
+                  <th className="px-4 py-3 font-black uppercase tracking-wider text-[9px] text-neutral-400">Category</th>
+                  <th className="px-4 py-3 font-black uppercase tracking-wider text-[9px] text-neutral-400 text-center">Unit Price</th>
+                  <th className="px-4 py-3 font-black uppercase tracking-wider text-[9px] text-neutral-400 text-center">Stock</th>
+                  <th className="px-4 py-3 font-black uppercase tracking-wider text-[9px] text-neutral-400 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-neutral-100 dark:divide-neutral-800">
+              <tbody className="divide-y divide-neutral-100 dark:divide-neutral-800/50">
                 {filteredProducts.map((p) => {
                   const isLowStock = p.stock_quantity <= p.min_stock;
                   return (
-                    <tr key={p.id} className="hover:bg-neutral-50 dark:hover:bg-neutral-800/30 transition-colors group">
-                      <td className="p-6">
-                        <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 rounded-2xl bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center text-neutral-400 group-hover:text-black dark:group-hover:text-white transition-colors">
-                            <Package size={24} />
+                    <tr key={p.id} className="hover:bg-neutral-50 dark:hover:bg-white/[0.01] transition-colors group">
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-9 rounded-xl bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center text-neutral-400 shrink-0">
+                            <Package size={18} />
                           </div>
-                          <div>
-                            <div className="font-black text-neutral-900 dark:text-white tracking-tight text-base">{p.name}</div>
-                            <div className="text-[10px] font-black uppercase text-neutral-400 tracking-widest mt-0.5">{p.variant || "Standard"}</div>
+                          <div className="min-w-0">
+                            <div className="font-bold text-neutral-900 dark:text-white truncate text-sm">{p.name}</div>
+                            <div className="text-[9px] font-black uppercase text-neutral-400 tracking-tight">{p.variant || "Standard"}</div>
                           </div>
                         </div>
                       </td>
-                      <td className="p-6">
-                        <Badge variant="outline" className="border-neutral-200 dark:border-neutral-700">
-                          {categories.find((c) => c.id === p.category)?.name || "Uncategorized"}
+                      <td className="px-4 py-3">
+                        <Badge variant="outline" className="text-[8px] px-1.5 py-0.5 border-neutral-200 dark:border-neutral-700 font-bold uppercase tracking-tight text-neutral-500">
+                          {categories.find((c) => c.id === p.category)?.name || "—"}
                         </Badge>
                       </td>
-                      <td className="p-6 text-center">
-                        <div className="font-black text-neutral-900 dark:text-white text-base">₹{Number(p.unit_price).toLocaleString('en-IN')}</div>
-                        <div className="text-[9px] font-bold text-neutral-400 uppercase mt-1 tracking-wider">Cost: ₹{Number(p.latest_purchase_price || p.purchase_price).toLocaleString('en-IN')}</div>
+                      <td className="px-4 py-3 text-center">
+                        <div className="font-black text-neutral-900 dark:text-white text-sm">₹{Number(p.unit_price).toLocaleString('en-IN')}</div>
+                        <div className="text-[8px] font-bold text-neutral-400 uppercase tracking-tight mt-0.5">Cost: ₹{Number(p.latest_purchase_price || p.purchase_price).toLocaleString('en-IN')}</div>
                       </td>
-                      <td className="p-6 text-center">
-                        <div className="inline-flex items-center gap-2">
-                          <Badge variant={isLowStock ? "error" : "success"} className="px-3 py-1">
-                            {p.stock_quantity} UNITS
-                          </Badge>
-                          {isLowStock && <AlertTriangle size={14} className="text-rose-500 animate-pulse" />}
+                      <td className="px-4 py-3 text-center">
+                        <div className="inline-flex items-center gap-1.5">
+                          <span className={cn(
+                            "text-xs font-black",
+                            isLowStock ? "text-rose-500" : "text-emerald-600 dark:text-emerald-400"
+                          )}>
+                            {p.stock_quantity} <span className="text-[8px] opacity-60">QTY</span>
+                          </span>
+                          {isLowStock && <AlertTriangle size={12} className="text-rose-500 animate-pulse" />}
                         </div>
-                        <div className="text-[9px] font-bold text-neutral-400 uppercase mt-1">Min: {p.min_stock}</div>
+                        <div className="text-[8px] font-bold text-neutral-400 uppercase tracking-tighter mt-0.5">Min: {p.min_stock}</div>
                       </td>
-                      <td className="p-6 text-right">
-                        <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <Button variant="ghost" size="sm" onClick={() => openEdit(p)} icon={<Pencil size={18} />} className="text-neutral-400 hover:text-black dark:hover:text-white" />
-                          <Button variant="ghost" size="sm" onClick={() => handleDeactivate(p.id)} className="text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10" icon={<Trash2 size={18} />} />
+                      <td className="px-4 py-3 text-right">
+                        <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Button variant="ghost" size="sm" onClick={() => openEdit(p)} icon={<Pencil size={14} />} className="h-8 w-8 p-0 rounded-lg text-neutral-400 hover:text-black dark:hover:text-white" />
+                          <Button variant="ghost" size="sm" onClick={() => handleDeactivate(p.id)} className="h-8 w-8 p-0 rounded-lg text-neutral-400 hover:text-rose-500" icon={<Trash2 size={14} />} />
                         </div>
                       </td>
                     </tr>
@@ -233,36 +239,41 @@ const Inventory: React.FC = () => {
           </div>
 
           {/* Mobile/Tablet Card View */}
-          <div className="lg:hidden grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="lg:hidden grid grid-cols-1 md:grid-cols-2 gap-4">
             {filteredProducts.map((p) => {
               const isLowStock = p.stock_quantity <= p.min_stock;
               return (
-                <Card key={p.id} className="p-6 shadow-sm space-y-5 rounded-[2rem]">
+                <Card key={p.id} className="p-4 shadow-sm space-y-3 rounded-2xl bg-white dark:bg-neutral-900 border-neutral-200/60 dark:border-neutral-800/60">
                   <div className="flex justify-between items-start">
-                    <div className="flex items-center gap-4">
-                      <div className="w-14 h-14 rounded-2xl bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center text-neutral-400">
-                        <Package size={28} />
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center text-neutral-400 shrink-0">
+                        <Package size={20} />
                       </div>
-                      <div>
-                        <h3 className="font-black text-neutral-900 dark:text-white leading-tight tracking-tight text-lg">{p.name}</h3>
-                        <p className="text-[10px] font-black uppercase tracking-widest text-neutral-400 mt-1">{p.variant || 'Standard'}</p>
+                      <div className="min-w-0">
+                        <h3 className="font-bold text-neutral-900 dark:text-white leading-tight truncate text-sm">{p.name}</h3>
+                        <div className="text-[9px] font-black uppercase text-neutral-400 tracking-tight">{p.variant || 'Standard'}</div>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <div className="text-sm font-black">₹{Number(p.unit_price).toLocaleString('en-IN')}</div>
-                      <Badge variant={isLowStock ? "error" : "success"} className="text-[9px] px-2 py-0.5 mt-2">
-                        {p.stock_quantity} UNITS
-                      </Badge>
-                      <div className="text-[8px] font-black text-neutral-400 uppercase mt-1">Min: {p.min_stock}</div>
+                    <div className="text-right shrink-0">
+                      <div className="text-sm font-black text-neutral-900 dark:text-white">₹{Number(p.unit_price).toLocaleString('en-IN')}</div>
                     </div>
                   </div>
-                  <div className="flex items-center justify-between pt-5 border-t border-neutral-100 dark:border-neutral-800">
-                    <Badge variant="outline" className="text-[9px] border-neutral-200 dark:border-neutral-700">
+
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className={cn(
+                        "text-xs font-black",
+                        isLowStock ? "text-rose-500" : "text-emerald-600 dark:text-emerald-400"
+                      )}>
+                        {p.stock_quantity} <span className="text-[8px] opacity-60">QTY</span>
+                      </div>
+                      <Badge variant="outline" className="text-[8px] px-1.5 py-0 border-neutral-200 dark:border-neutral-700 font-bold uppercase tracking-tight text-neutral-500">
                         {categories.find((c) => c.id === p.category)?.name || "—"}
-                    </Badge>
-                    <div className="flex gap-2">
-                        <Button variant="secondary" size="sm" onClick={() => openEdit(p)} icon={<Pencil size={16} />} className="rounded-xl" />
-                        <Button variant="ghost" size="sm" onClick={() => handleDeactivate(p.id)} className="text-rose-500 bg-rose-50 dark:bg-rose-500/10 rounded-xl" icon={<Trash2 size={16} />} />
+                      </Badge>
+                    </div>
+                    <div className="flex gap-1">
+                        <Button variant="ghost" size="sm" onClick={() => openEdit(p)} icon={<Pencil size={14} />} className="h-8 w-8 p-0 rounded-lg bg-neutral-50 dark:bg-neutral-800/50" />
+                        <Button variant="ghost" size="sm" onClick={() => handleDeactivate(p.id)} className="h-8 w-8 p-0 rounded-lg bg-rose-50 dark:bg-rose-500/10 text-rose-500" icon={<Trash2 size={14} />} />
                     </div>
                   </div>
                 </Card>
@@ -280,20 +291,21 @@ const Inventory: React.FC = () => {
         onSubmit={handleSubmit}
         footer={
           <>
-            <Button variant="ghost" onClick={closeModal} type="button">Cancel</Button>
-            <Button type="submit" className="px-8 shadow-lg">
+            <Button variant="ghost" onClick={closeModal} type="button" className="text-xs">Cancel</Button>
+            <Button type="submit" className="px-6 h-10 text-xs shadow-lg">
               {editingProduct ? "Save Changes" : "Create Product"}
             </Button>
           </>
         }
       >
-        <div className="space-y-6">
+        <div className="space-y-5">
           <Input
             label="Product Name"
-            placeholder="E.g. Packing Tape"
+            placeholder="E.g. Bubble Wrap"
             required
             value={form.name}
             onChange={(e) => setForm({ ...form, name: e.target.value })}
+            className="h-11 text-sm"
           />
 
           <div className="grid grid-cols-2 gap-4">
@@ -302,14 +314,16 @@ const Inventory: React.FC = () => {
               placeholder="E.g. 2 inch"
               value={form.variant}
               onChange={(e) => setForm({ ...form, variant: e.target.value })}
+              className="h-11 text-sm"
             />
             <Select
               label="Category"
               required
               value={form.category}
               onChange={(e) => setForm({ ...form, category: e.target.value })}
-              placeholder="Select category..."
+              placeholder="Select..."
               options={categories.map(c => ({ value: c.id, label: c.name }))}
+              className="h-11 text-sm"
             />
           </div>
 
@@ -321,9 +335,9 @@ const Inventory: React.FC = () => {
               required
               value={form.min_stock}
               onChange={(e) => setForm({ ...form, min_stock: e.target.value })}
-              icon={<AlertTriangle size={16} className="text-neutral-400" />}
+              icon={<AlertTriangle size={14} className="text-neutral-400" />}
+              className="h-11 text-sm"
             />
-            <div />
           </div>
 
           <div className="grid grid-cols-2 gap-4 pt-4 border-t border-neutral-100 dark:border-neutral-800">
@@ -333,20 +347,21 @@ const Inventory: React.FC = () => {
               placeholder="0.00"
               value={form.purchase_price}
               onChange={(e) => setForm({ ...form, purchase_price: e.target.value })}
-              icon={<span className="font-bold text-neutral-400">₹</span>}
+              icon={<span className="font-bold text-neutral-400 text-xs">₹</span>}
+              className="h-11 text-sm"
             />
             <Input
-              label="Default Selling Price (MRP)"
+              label="Selling Price (MRP)"
               type="number"
               placeholder="0.00"
               value={form.unit_price}
               onChange={(e) => setForm({ ...form, unit_price: e.target.value })}
-              icon={<span className="font-bold text-neutral-400">₹</span>}
+              icon={<span className="font-bold text-neutral-400 text-xs">₹</span>}
+              className="h-11 text-sm"
             />
           </div>
-          <p className="text-[10px] text-neutral-400 italic mt-2 leading-relaxed">
-            * Purchase cost is used for calculating total inventory value.<br />
-            * Selling price is flexible and can be negotiated during billing.
+          <p className="text-[10px] text-neutral-400 italic leading-snug">
+            * Purchase cost calculates inventory value. Selling price can be adjusted at billing.
           </p>
         </div>
       </Modal>
