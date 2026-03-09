@@ -32,6 +32,10 @@ class Product(models.Model):
         default=0,
         validators=[MinValueValidator(0)]
     )
+    min_stock = models.IntegerField(
+        default=5,
+        validators=[MinValueValidator(0)]
+    )
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 

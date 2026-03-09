@@ -13,6 +13,7 @@ export interface Product {
   variant?: string;
   unit_price: number;
   stock_quantity: number;
+  min_stock: number;
   is_active: boolean;
   description?: string;
 }

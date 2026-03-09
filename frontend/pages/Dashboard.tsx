@@ -58,7 +58,7 @@ const Dashboard = () => {
   const totalInventoryValue = data.products.reduce((acc, p) => acc + ((p.unit_price || 0) * (p.stock_quantity || 0)), 0);
   const totalRevenue = data.bills.reduce((acc, b) => acc + (Number(b.total_amount) || 0), 0);
   const totalExpenses = data.purchases.reduce((acc, p) => acc + (Number(p.total_amount) || 0), 0);
-  const lowStockCount = data.products.filter(p => p.stock_quantity < 5).length;
+  const lowStockCount = data.products.filter(p => p.stock_quantity <= p.min_stock).length;
 
   if (loading) return (
     <div className="space-y-4 animate-pulse">
@@ -119,38 +119,46 @@ const Dashboard = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 items-start">
         {/* Mobile: Stock Status comes first, then Activity */}
         <div className="order-1 lg:order-2">
-          <Card className="p-0 overflow-hidden border-neutral-200/60 dark:border-neutral-800/60 shadow-sm">
+          <Card className="p-0 overflow-hidden border-neutral-200/60 dark:border-neutral-800/60 shadow-sm bg-white dark:bg-neutral-900">
             <div className="px-4 py-3.5 border-b border-neutral-100 dark:border-neutral-800/50">
-              <h2 className="text-[11px] font-black uppercase tracking-wider text-neutral-500">Stock Status</h2>
+              <h2 className="text-[11px] font-black uppercase tracking-wider text-neutral-500 dark:text-neutral-400">Stock Status</h2>
             </div>
             <div className="p-4 space-y-4">
               {data.products
-                .sort((a, b) => b.stock_quantity - a.stock_quantity)
+                .sort((a, b) => a.stock_quantity - b.stock_quantity) // Sort by lowest stock first
                 .slice(0, 6)
-                .map((p, idx) => (
-                <div key={idx} className="space-y-1.5">
-                  <div className="flex justify-between items-end">
-                    <div className="min-w-0 flex-1">
-                      <div className="text-xs font-bold text-neutral-800 dark:text-neutral-200 truncate">{p.name}</div>
-                      <div className="text-[9px] text-neutral-400 font-bold uppercase tracking-tight">{p.variant || 'Standard'}</div>
+                .map((p, idx) => {
+                  const isLow = p.stock_quantity <= p.min_stock;
+                  return (
+                    <div key={idx} className="space-y-1.5">
+                      <div className="flex justify-between items-end">
+                        <div className="min-w-0 flex-1">
+                          <div className="text-xs font-bold text-neutral-800 dark:text-neutral-200 truncate">{p.name}</div>
+                          <div className="text-[9px] text-neutral-400 font-bold uppercase tracking-tight">{p.variant || 'Standard'}</div>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <div className={cn(
+                            "text-[10px] font-black",
+                            isLow ? "text-rose-500" : "text-neutral-700 dark:text-neutral-300"
+                          )}>
+                            {p.stock_quantity} <span className="opacity-50 text-[8px]">QTY</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="h-1 w-full bg-neutral-100 dark:bg-neutral-800 rounded-full overflow-hidden">
+                        <motion.div
+                          initial={{ width: 0 }}
+                          animate={{ width: `${Math.min((p.stock_quantity / Math.max(p.min_stock * 2, 10)) * 100, 100)}%` }}
+                          transition={{ duration: 1, ease: "circOut" }}
+                          className={cn(
+                            "h-full rounded-full",
+                            isLow ? "bg-rose-500" : p.stock_quantity <= p.min_stock * 2 ? "bg-amber-500" : "bg-neutral-900 dark:bg-neutral-200"
+                          )}
+                        />
+                      </div>
                     </div>
-                    <div className="text-right shrink-0">
-                      <div className="text-[10px] font-black text-neutral-700 dark:text-neutral-300">{p.stock_quantity} <span className="opacity-50">QTY</span></div>
-                    </div>
-                  </div>
-                  <div className="h-1 w-full bg-neutral-100 dark:bg-neutral-800 rounded-full overflow-hidden">
-                    <motion.div 
-                      initial={{ width: 0 }}
-                      animate={{ width: `${Math.min((p.stock_quantity / 100) * 100, 100)}%` }}
-                      transition={{ duration: 1, ease: "circOut" }}
-                      className={cn(
-                        "h-full rounded-full",
-                        p.stock_quantity < 5 ? "bg-rose-500" : p.stock_quantity < 20 ? "bg-amber-500" : "bg-neutral-900 dark:bg-neutral-200"
-                      )}
-                    />
-                  </div>
-                </div>
-              ))}
+                  );
+                })}
               {data.products.length === 0 && (
                 <div className="py-8 text-center text-neutral-400 text-[11px] font-medium italic">Inventory is empty</div>
               )}
@@ -159,9 +167,9 @@ const Dashboard = () => {
         </div>
 
         <div className="lg:col-span-2 order-2 lg:order-1">
-          <Card className="p-0 overflow-hidden border-neutral-200/60 dark:border-neutral-800/60 shadow-sm">
+          <Card className="p-0 overflow-hidden border-neutral-200/60 dark:border-neutral-800/60 shadow-sm bg-white dark:bg-neutral-900">
             <div className="px-4 py-3.5 flex justify-between items-center border-b border-neutral-100 dark:border-neutral-800/50">
-              <h2 className="text-[11px] font-black uppercase tracking-wider text-neutral-500">Recent Activity</h2>
+              <h2 className="text-[11px] font-black uppercase tracking-wider text-neutral-500 dark:text-neutral-400">Recent Activity</h2>
               <Button variant="ghost" size="sm" className="h-6 text-[10px] font-black text-neutral-400 hover:text-black dark:hover:text-white uppercase tracking-widest">
                 View All <ArrowRight size={10} className="ml-1" />
               </Button>

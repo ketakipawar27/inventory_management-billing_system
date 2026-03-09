@@ -26,7 +26,8 @@ const Inventory: React.FC = () => {
     name: "",
     variant: "",
     category: "",
-    unit_price: ""
+    unit_price: "",
+    min_stock: "5"
   });
 
   const fetchData = useCallback(async () => {
@@ -63,12 +64,12 @@ const Inventory: React.FC = () => {
   const closeModal = () => {
     setShowModal(false);
     setEditingProduct(null);
-    setForm({ name: "", variant: "", category: "", unit_price: "" });
+    setForm({ name: "", variant: "", category: "", unit_price: "", min_stock: "5" });
   };
 
   const openCreate = () => {
     setEditingProduct(null);
-    setForm({ name: "", variant: "", category: "", unit_price: "" });
+    setForm({ name: "", variant: "", category: "", unit_price: "", min_stock: "5" });
     setShowModal(true);
   };
 
@@ -78,7 +79,8 @@ const Inventory: React.FC = () => {
       name: product.name,
       variant: product.variant || "",
       category: String(product.category),
-      unit_price: String(product.unit_price)
+      unit_price: String(product.unit_price),
+      min_stock: String(product.min_stock)
     });
     setShowModal(true);
   };
@@ -94,7 +96,8 @@ const Inventory: React.FC = () => {
       name: form.name.trim(),
       variant: form.variant.trim() || null,
       category: Number(form.category),
-      unit_price: Number(form.unit_price) || 0
+      unit_price: Number(form.unit_price) || 0,
+      min_stock: Number(form.min_stock) || 0
     };
 
     try {
@@ -178,77 +181,85 @@ const Inventory: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-neutral-100 dark:divide-neutral-800">
-                {filteredProducts.map((p) => (
-                  <tr key={p.id} className="hover:bg-neutral-50 dark:hover:bg-neutral-800/30 transition-colors group">
-                    <td className="p-6">
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-2xl bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center text-neutral-400 group-hover:text-black dark:group-hover:text-white transition-colors">
-                          <Package size={24} />
+                {filteredProducts.map((p) => {
+                  const isLowStock = p.stock_quantity <= p.min_stock;
+                  return (
+                    <tr key={p.id} className="hover:bg-neutral-50 dark:hover:bg-neutral-800/30 transition-colors group">
+                      <td className="p-6">
+                        <div className="flex items-center gap-4">
+                          <div className="w-12 h-12 rounded-2xl bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center text-neutral-400 group-hover:text-black dark:group-hover:text-white transition-colors">
+                            <Package size={24} />
+                          </div>
+                          <div>
+                            <div className="font-black text-neutral-900 dark:text-white tracking-tight text-base">{p.name}</div>
+                            <div className="text-[10px] font-black uppercase text-neutral-400 tracking-widest mt-0.5">{p.variant || "Standard"}</div>
+                          </div>
                         </div>
-                        <div>
-                          <div className="font-black text-neutral-900 dark:text-white tracking-tight text-base">{p.name}</div>
-                          <div className="text-[10px] font-black uppercase text-neutral-400 tracking-widest mt-0.5">{p.variant || "Standard"}</div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="p-6">
-                      <Badge variant="outline" className="border-neutral-200 dark:border-neutral-700">
-                        {categories.find((c) => c.id === p.category)?.name || "Uncategorized"}
-                      </Badge>
-                    </td>
-                    <td className="p-6 text-center font-black text-base">₹{Number(p.unit_price).toLocaleString('en-IN')}</td>
-                    <td className="p-6 text-center">
-                      <div className="inline-flex items-center gap-2">
-                        <Badge variant={p.stock_quantity <= 5 ? "error" : "success"} className="px-3 py-1">
-                          {p.stock_quantity} UNITS
+                      </td>
+                      <td className="p-6">
+                        <Badge variant="outline" className="border-neutral-200 dark:border-neutral-700">
+                          {categories.find((c) => c.id === p.category)?.name || "Uncategorized"}
                         </Badge>
-                        {p.stock_quantity <= 5 && <AlertTriangle size={14} className="text-rose-500 animate-pulse" />}
-                      </div>
-                    </td>
-                    <td className="p-6 text-right">
-                      <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Button variant="ghost" size="sm" onClick={() => openEdit(p)} icon={<Pencil size={18} />} className="text-neutral-400 hover:text-black dark:hover:text-white" />
-                        <Button variant="ghost" size="sm" onClick={() => handleDeactivate(p.id)} className="text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10" icon={<Trash2 size={18} />} />
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+                      <td className="p-6 text-center font-black text-base">₹{Number(p.unit_price).toLocaleString('en-IN')}</td>
+                      <td className="p-6 text-center">
+                        <div className="inline-flex items-center gap-2">
+                          <Badge variant={isLowStock ? "error" : "success"} className="px-3 py-1">
+                            {p.stock_quantity} UNITS
+                          </Badge>
+                          {isLowStock && <AlertTriangle size={14} className="text-rose-500 animate-pulse" />}
+                        </div>
+                        <div className="text-[9px] font-bold text-neutral-400 uppercase mt-1">Min: {p.min_stock}</div>
+                      </td>
+                      <td className="p-6 text-right">
+                        <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Button variant="ghost" size="sm" onClick={() => openEdit(p)} icon={<Pencil size={18} />} className="text-neutral-400 hover:text-black dark:hover:text-white" />
+                          <Button variant="ghost" size="sm" onClick={() => handleDeactivate(p.id)} className="text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10" icon={<Trash2 size={18} />} />
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
 
           {/* Mobile/Tablet Card View */}
           <div className="lg:hidden grid grid-cols-1 md:grid-cols-2 gap-6">
-            {filteredProducts.map((p) => (
-              <Card key={p.id} className="p-6 shadow-sm space-y-5 rounded-[2rem]">
-                <div className="flex justify-between items-start">
-                  <div className="flex items-center gap-4">
-                    <div className="w-14 h-14 rounded-2xl bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center text-neutral-400">
-                      <Package size={28} />
+            {filteredProducts.map((p) => {
+              const isLowStock = p.stock_quantity <= p.min_stock;
+              return (
+                <Card key={p.id} className="p-6 shadow-sm space-y-5 rounded-[2rem]">
+                  <div className="flex justify-between items-start">
+                    <div className="flex items-center gap-4">
+                      <div className="w-14 h-14 rounded-2xl bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center text-neutral-400">
+                        <Package size={28} />
+                      </div>
+                      <div>
+                        <h3 className="font-black text-neutral-900 dark:text-white leading-tight tracking-tight text-lg">{p.name}</h3>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-neutral-400 mt-1">{p.variant || 'Standard'}</p>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="font-black text-neutral-900 dark:text-white leading-tight tracking-tight text-lg">{p.name}</h3>
-                      <p className="text-[10px] font-black uppercase tracking-widest text-neutral-400 mt-1">{p.variant || 'Standard'}</p>
+                    <div className="text-right">
+                      <div className="text-sm font-black">₹{Number(p.unit_price).toLocaleString('en-IN')}</div>
+                      <Badge variant={isLowStock ? "error" : "success"} className="text-[9px] px-2 py-0.5 mt-2">
+                        {p.stock_quantity} UNITS
+                      </Badge>
+                      <div className="text-[8px] font-black text-neutral-400 uppercase mt-1">Min: {p.min_stock}</div>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <div className="text-sm font-black">₹{Number(p.unit_price).toLocaleString('en-IN')}</div>
-                    <Badge variant={p.stock_quantity <= 5 ? "error" : "success"} className="text-[9px] px-2 py-0.5 mt-2">
-                      {p.stock_quantity} UNITS
+                  <div className="flex items-center justify-between pt-5 border-t border-neutral-100 dark:border-neutral-800">
+                    <Badge variant="outline" className="text-[9px] border-neutral-200 dark:border-neutral-700">
+                        {categories.find((c) => c.id === p.category)?.name || "—"}
                     </Badge>
+                    <div className="flex gap-2">
+                        <Button variant="secondary" size="sm" onClick={() => openEdit(p)} icon={<Pencil size={16} />} className="rounded-xl" />
+                        <Button variant="ghost" size="sm" onClick={() => handleDeactivate(p.id)} className="text-rose-500 bg-rose-50 dark:bg-rose-500/10 rounded-xl" icon={<Trash2 size={16} />} />
+                    </div>
                   </div>
-                </div>
-                <div className="flex items-center justify-between pt-5 border-t border-neutral-100 dark:border-neutral-800">
-                  <Badge variant="outline" className="text-[9px] border-neutral-200 dark:border-neutral-700">
-                      {categories.find((c) => c.id === p.category)?.name || "—"}
-                  </Badge>
-                  <div className="flex gap-2">
-                      <Button variant="secondary" size="sm" onClick={() => openEdit(p)} icon={<Pencil size={16} />} className="rounded-xl" />
-                      <Button variant="ghost" size="sm" onClick={() => handleDeactivate(p.id)} className="text-rose-500 bg-rose-50 dark:bg-rose-500/10 rounded-xl" icon={<Trash2 size={16} />} />
-                  </div>
-                </div>
-              </Card>
-            ))}
+                </Card>
+              );
+            })}
           </div>
         </>
       )}
@@ -295,14 +306,25 @@ const Inventory: React.FC = () => {
             />
           </div>
 
-          <Select
-            label="Category"
-            required
-            value={form.category}
-            onChange={(e) => setForm({ ...form, category: e.target.value })}
-            placeholder="Select category..."
-            options={categories.map(c => ({ value: c.id, label: c.name }))}
-          />
+          <div className="grid grid-cols-2 gap-4">
+            <Select
+              label="Category"
+              required
+              value={form.category}
+              onChange={(e) => setForm({ ...form, category: e.target.value })}
+              placeholder="Select category..."
+              options={categories.map(c => ({ value: c.id, label: c.name }))}
+            />
+            <Input
+              label="Min Stock Alert"
+              type="number"
+              placeholder="5"
+              required
+              value={form.min_stock}
+              onChange={(e) => setForm({ ...form, min_stock: e.target.value })}
+              icon={<AlertTriangle size={16} className="text-neutral-400" />}
+            />
+          </div>
         </div>
       </Modal>
     </div>
