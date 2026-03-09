@@ -31,6 +31,7 @@ class BillItemReadSerializer(serializers.ModelSerializer):
             "product_name",
             "quantity",
             "price_per_unit",
+            "purchase_price",
             "total_price",
         )
 
@@ -89,7 +90,8 @@ class BillSerializer(serializers.ModelSerializer):
                 bill=bill,
                 product=product,
                 quantity=quantity,
-                price_per_unit=price_per_unit,
+                price_per_unit=price_per_unit, # Selling Price
+                purchase_price=product.purchase_price, # Cost Price at time of sale
                 total_price=total_price,
             )
 

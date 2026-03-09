@@ -11,7 +11,8 @@ export interface Product {
   category: number | Category;
   sku: string;
   variant?: string;
-  unit_price: number;
+  unit_price: number; // Selling Price
+  purchase_price: number; // Cost Price
   stock_quantity: number;
   min_stock: number;
   is_active: boolean;
@@ -36,7 +37,8 @@ export interface BillItem {
   product_id: number;
   product_name: string;
   quantity: number;
-  price_per_unit: number;
+  price_per_unit: number; // Selling Price
+  purchase_price: number; // Cost Price at time of sale
   total_price: number;
 }
 

@@ -27,6 +27,18 @@ class Product(models.Model):
         decimal_places=2,
         default=Decimal("0.00")
     )
+    # purchase_price stores the Weighted Average Cost (used for Profit/Inventory Value)
+    purchase_price = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=Decimal("0.00")
+    )
+    # latest_purchase_price stores the price from the very last purchase (for owner display)
+    latest_purchase_price = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=Decimal("0.00")
+    )
 
     stock_quantity = models.IntegerField(
         default=0,
@@ -130,7 +142,8 @@ class BillItem(models.Model):
         related_name="bill_items"
     )
     quantity = models.PositiveIntegerField()
-    price_per_unit = models.DecimalField(max_digits=10, decimal_places=2)
+    price_per_unit = models.DecimalField(max_digits=10, decimal_places=2) # Selling Price
+    purchase_price = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00")) # Cost Price (Avg) at time of sale
     total_price = models.DecimalField(max_digits=12, decimal_places=2)
 
     def __str__(self):

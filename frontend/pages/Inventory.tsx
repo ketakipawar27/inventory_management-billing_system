@@ -27,6 +27,7 @@ const Inventory: React.FC = () => {
     variant: "",
     category: "",
     unit_price: "",
+    purchase_price: "",
     min_stock: "5"
   });
 
@@ -64,12 +65,12 @@ const Inventory: React.FC = () => {
   const closeModal = () => {
     setShowModal(false);
     setEditingProduct(null);
-    setForm({ name: "", variant: "", category: "", unit_price: "", min_stock: "5" });
+    setForm({ name: "", variant: "", category: "", unit_price: "", purchase_price: "", min_stock: "5" });
   };
 
   const openCreate = () => {
     setEditingProduct(null);
-    setForm({ name: "", variant: "", category: "", unit_price: "", min_stock: "5" });
+    setForm({ name: "", variant: "", category: "", unit_price: "0", purchase_price: "0", min_stock: "5" });
     setShowModal(true);
   };
 
@@ -80,6 +81,7 @@ const Inventory: React.FC = () => {
       variant: product.variant || "",
       category: String(product.category),
       unit_price: String(product.unit_price),
+      purchase_price: String(product.purchase_price || "0"),
       min_stock: String(product.min_stock)
     });
     setShowModal(true);
@@ -97,6 +99,9 @@ const Inventory: React.FC = () => {
       variant: form.variant.trim() || null,
       category: Number(form.category),
       unit_price: Number(form.unit_price) || 0,
+      // On creation/edit, we update BOTH avg and latest price to the manually entered value
+      purchase_price: Number(form.purchase_price) || 0,
+      latest_purchase_price: Number(form.purchase_price) || 0,
       min_stock: Number(form.min_stock) || 0
     };
 
@@ -127,7 +132,7 @@ const Inventory: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 pb-20 lg:pb-0">
+    <div className="space-y-6 pb-20 lg:pb-0 h-full overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-neutral-200 dark:scrollbar-thumb-neutral-800">
       <PageHeader
         description="Manage your products, stock levels, and pricing."
         action={
@@ -201,7 +206,10 @@ const Inventory: React.FC = () => {
                           {categories.find((c) => c.id === p.category)?.name || "Uncategorized"}
                         </Badge>
                       </td>
-                      <td className="p-6 text-center font-black text-base">₹{Number(p.unit_price).toLocaleString('en-IN')}</td>
+                      <td className="p-6 text-center">
+                        <div className="font-black text-neutral-900 dark:text-white text-base">₹{Number(p.unit_price).toLocaleString('en-IN')}</div>
+                        <div className="text-[9px] font-bold text-neutral-400 uppercase mt-1 tracking-wider">Cost: ₹{Number(p.latest_purchase_price || p.purchase_price).toLocaleString('en-IN')}</div>
+                      </td>
                       <td className="p-6 text-center">
                         <div className="inline-flex items-center gap-2">
                           <Badge variant={isLowStock ? "error" : "success"} className="px-3 py-1">
@@ -295,18 +303,6 @@ const Inventory: React.FC = () => {
               value={form.variant}
               onChange={(e) => setForm({ ...form, variant: e.target.value })}
             />
-            <Input
-              label="Selling Price"
-              type="number"
-              placeholder="0.00"
-              required
-              value={form.unit_price}
-              onChange={(e) => setForm({ ...form, unit_price: e.target.value })}
-              icon={<span className="font-bold text-neutral-400">₹</span>}
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
             <Select
               label="Category"
               required
@@ -315,6 +311,9 @@ const Inventory: React.FC = () => {
               placeholder="Select category..."
               options={categories.map(c => ({ value: c.id, label: c.name }))}
             />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
             <Input
               label="Min Stock Alert"
               type="number"
@@ -324,7 +323,31 @@ const Inventory: React.FC = () => {
               onChange={(e) => setForm({ ...form, min_stock: e.target.value })}
               icon={<AlertTriangle size={16} className="text-neutral-400" />}
             />
+            <div />
           </div>
+
+          <div className="grid grid-cols-2 gap-4 pt-4 border-t border-neutral-100 dark:border-neutral-800">
+            <Input
+              label="Purchase Price (Cost)"
+              type="number"
+              placeholder="0.00"
+              value={form.purchase_price}
+              onChange={(e) => setForm({ ...form, purchase_price: e.target.value })}
+              icon={<span className="font-bold text-neutral-400">₹</span>}
+            />
+            <Input
+              label="Default Selling Price (MRP)"
+              type="number"
+              placeholder="0.00"
+              value={form.unit_price}
+              onChange={(e) => setForm({ ...form, unit_price: e.target.value })}
+              icon={<span className="font-bold text-neutral-400">₹</span>}
+            />
+          </div>
+          <p className="text-[10px] text-neutral-400 italic mt-2 leading-relaxed">
+            * Purchase cost is used for calculating total inventory value.<br />
+            * Selling price is flexible and can be negotiated during billing.
+          </p>
         </div>
       </Modal>
     </div>
