@@ -77,7 +77,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
               <div className="w-10 h-10 bg-black dark:bg-white rounded-xl flex items-center justify-center shadow-xl">
                 <div className="w-5 h-5 bg-white dark:bg-black rounded-md rotate-45" />
               </div>
-              <span className="text-2xl font-black tracking-tighter">ZENITH</span>
+              <span className="text-2xl font-black tracking-tighter uppercase">Swami</span>
             </div>
           </div>
 
@@ -107,7 +107,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       {/* Main Content Area */}
       <div className="flex-1 lg:ml-72 flex flex-col min-w-0 h-full relative">
         {/* Header */}
-        <header className="h-16 lg:h-20 border-b border-neutral-200 dark:border-neutral-900 flex items-center justify-between px-6 lg:px-10 bg-neutral-50/80 dark:bg-black/80 backdrop-blur-xl z-30 shrink-0">
+        <header className="h-16 lg:h-20 border-b border-neutral-200 dark:border-neutral-900 flex items-center justify-between px-4 lg:px-10 bg-neutral-50/80 dark:bg-black/80 backdrop-blur-xl z-30 shrink-0">
           <div className="flex items-center gap-3">
             <div className="lg:hidden w-8 h-8 bg-black dark:bg-white rounded-lg flex items-center justify-center shadow-lg">
                 <div className="w-4 h-4 bg-white dark:bg-black rounded-sm rotate-45" />
@@ -132,7 +132,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             <div className="flex items-center gap-2 lg:gap-3 px-1">
               <div className="hidden md:block text-right">
                 <div className="text-[10px] font-black text-neutral-900 dark:text-white uppercase tracking-widest">Admin Panel</div>
-                <div className="text-[9px] text-neutral-400 font-bold uppercase tracking-tight">admin@zenith.in</div>
+                <div className="text-[9px] text-neutral-400 font-bold uppercase tracking-tight">admin@swami.in</div>
               </div>
               <div className="w-10 h-10 rounded-xl bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 flex items-center justify-center font-black text-neutral-600 dark:text-neutral-400 shadow-sm text-sm">
                 SA
