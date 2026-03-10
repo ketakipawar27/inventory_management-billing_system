@@ -215,13 +215,6 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                   <SidebarItem icon={Lock} label="Lock System" onClick={() => { lock(); setIsSidebarOpen(false); }} />
                   <SidebarItem icon={LogOut} label="Sign Out" onClick={() => { logout(); setIsSidebarOpen(false); }} className="text-red-500" />
                 </div>
-
-                <div className="mt-auto">
-                   <div className="p-4 rounded-2xl bg-neutral-50 dark:bg-neutral-900/50 border border-neutral-200 dark:border-neutral-800 flex items-center gap-3">
-                      <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
-                      <span className="text-[10px] font-black text-neutral-500 uppercase tracking-widest">System Online</span>
-                   </div>
-                </div>
               </motion.div>
             </>
           )}

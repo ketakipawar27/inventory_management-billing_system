@@ -1,13 +1,19 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 
+export interface User {
+  email: string;
+  name: string;
+}
+
 interface AuthContextType {
   isAuthenticated: boolean;
   isLocked: boolean;
   login: (email: string, password: string) => Promise<boolean>;
+  setSession: (user: User) => void;
   logout: () => void;
   lock: () => void;
   unlock: (password: string) => Promise<boolean>;
-  user: { email: string; name: string } | null;
+  user: User | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -21,19 +27,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLocked, setIsLocked] = useState<boolean>(() => {
     return localStorage.getItem('isLocked') === 'true';
   });
-  const [user, setUser] = useState<{ email: string; name: string } | null>(() => {
+  const [user, setUser] = useState<User | null>(() => {
     const savedUser = localStorage.getItem('user');
     return savedUser ? JSON.parse(savedUser) : null;
   });
+
+  const setSession = useCallback((userData: User) => {
+    setIsAuthenticated(true);
+    setUser(userData);
+    localStorage.setItem('isAuthenticated', 'true');
+    localStorage.setItem('user', JSON.stringify(userData));
+  }, []);
 
   const login = async (email: string, password: string): Promise<boolean> => {
     // Hardcoded credentials
     if (email === 'swami@gmail.com' && password === '@Swami1234') {
       const userData = { email, name: 'Swami' };
-      setIsAuthenticated(true);
-      setUser(userData);
-      localStorage.setItem('isAuthenticated', 'true');
-      localStorage.setItem('user', JSON.stringify(userData));
+      setSession(userData);
       return true;
     }
     return false;
@@ -85,7 +95,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [isAuthenticated, isLocked, lock]);
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, isLocked, login, logout, lock, unlock, user }}>
+    <AuthContext.Provider value={{ isAuthenticated, isLocked, login, setSession, logout, lock, unlock, user }}>
       {children}
     </AuthContext.Provider>
   );
