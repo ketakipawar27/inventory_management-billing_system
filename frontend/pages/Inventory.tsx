@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState, useCallback } from "react";
 import { api } from "../api";
 import { Product, Category } from "../types";
-import { Plus, Trash2, Pencil, Search, AlertTriangle, Package } from "lucide-react";
+import { Plus, Trash2, Pencil, Search, AlertTriangle, Package, Filter, X } from "lucide-react";
 import { useToast } from "../context/ToastContext";
 import { Card } from "../components/ui/Card";
 import { Button } from "../components/ui/Button";
@@ -19,6 +19,7 @@ const Inventory: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<string>("");
 
   const [showModal, setShowModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
@@ -55,13 +56,16 @@ const Inventory: React.FC = () => {
     const q = search.toLowerCase();
     return products.filter((p) => {
       const categoryName = categories.find((c) => c.id === p.category)?.name || "";
-      return (
+      const matchesSearch =
         p.name.toLowerCase().includes(q) ||
         (p.variant || "").toLowerCase().includes(q) ||
-        categoryName.toLowerCase().includes(q)
-      );
+        categoryName.toLowerCase().includes(q);
+
+      const matchesCategory = !selectedCategory || String(p.category) === selectedCategory;
+
+      return matchesSearch && matchesCategory;
     });
-  }, [search, products, categories]);
+  }, [search, selectedCategory, products, categories]);
 
   const closeModal = () => {
     setShowModal(false);
@@ -131,6 +135,13 @@ const Inventory: React.FC = () => {
     }
   };
 
+  const clearFilters = () => {
+    setSearch("");
+    setSelectedCategory("");
+  };
+
+  const hasActiveFilters = search !== "" || selectedCategory !== "";
+
   return (
     <div className="space-y-5 pb-10 h-full overflow-y-auto scrollbar-thin scrollbar-thumb-neutral-200 dark:scrollbar-thumb-neutral-800">
       <PageHeader
@@ -147,14 +158,42 @@ const Inventory: React.FC = () => {
         }
       />
 
-      <div className="max-w-md">
-        <Input
-          placeholder="Search products..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          icon={<Search size={16} />}
-          className="h-10 text-xs shadow-sm"
-        />
+      <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+        <div className="flex-1 max-w-md">
+          <Input
+            placeholder="Search products..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            icon={<Search size={16} />}
+            className="h-10 text-xs shadow-sm bg-white dark:bg-neutral-900 border-neutral-200 dark:border-neutral-800"
+          />
+        </div>
+
+        <div className="w-full sm:w-56">
+          <Select
+            placeholder="All Categories"
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(String(e.target.value))}
+            icon={<Filter size={14} />}
+            options={[
+              { value: "", label: "All Categories" },
+              ...categories.map(c => ({ value: String(c.id), label: c.name }))
+            ]}
+            className="h-10 text-xs shadow-sm bg-white dark:bg-neutral-900 border-neutral-200 dark:border-neutral-800"
+          />
+        </div>
+
+        {hasActiveFilters && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={clearFilters}
+            className="text-neutral-400 hover:text-rose-500 h-10 px-3 text-[10px] font-black uppercase tracking-widest"
+            icon={<X size={14} />}
+          >
+            Clear
+          </Button>
+        )}
       </div>
 
       {loading ? (
@@ -166,9 +205,13 @@ const Inventory: React.FC = () => {
       ) : filteredProducts.length === 0 ? (
         <EmptyState
           icon={Package}
-          title={search ? "No matches" : "Inventory empty"}
-          description={search ? `No products for "${search}"` : "Start by adding products."}
-          action={!search && (
+          title={hasActiveFilters ? "No matches found" : "Inventory empty"}
+          description={hasActiveFilters ? "Try adjusting your search or filters" : "Start by adding products."}
+          action={hasActiveFilters ? (
+            <Button onClick={clearFilters} size="sm" variant="outline">
+              Clear Filters
+            </Button>
+          ) : (
             <Button onClick={openCreate} size="sm" icon={<Plus size={16} />}>
               Add Product
             </Button>
@@ -210,8 +253,8 @@ const Inventory: React.FC = () => {
                         </Badge>
                       </td>
                       <td className="px-4 py-3 text-center">
-                        <div className="font-black text-neutral-900 dark:text-white text-sm">₹{Number(p.unit_price).toLocaleString('en-IN')}</div>
-                        <div className="text-[8px] font-bold text-neutral-400 uppercase tracking-tight mt-0.5">Cost: ₹{Number(p.latest_purchase_price || p.purchase_price).toLocaleString('en-IN')}</div>
+                        <div className="font-black text-neutral-900 dark:text-white text-sm">₹{Number(p.latest_purchase_price || p.purchase_price).toLocaleString('en-IN')}</div>
+                        {/* <div className="text-[8px] font-bold text-neutral-400 uppercase tracking-tight mt-0.5">Cost: ₹{Number(p.latest_purchase_price || p.purchase_price).toLocaleString('en-IN')}</div> */}
                       </td>
                       <td className="px-4 py-3 text-center">
                         <div className="inline-flex items-center gap-1.5">
