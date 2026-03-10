@@ -64,7 +64,7 @@ const Dashboard = () => {
     fetchData();
   }, []);
 
-  // 1. Inventory Value = sum(remaining_stock * purchase_price)
+  // 1. Inventory Value
   const totalInventoryValue = data.products.reduce((acc, p) => acc + (Number(p.purchase_price || 0) * (p.stock_quantity || 0)), 0);
   const totalStockUnits = data.products.reduce((acc, p) => acc + (p.stock_quantity || 0), 0);
 
@@ -92,6 +92,14 @@ const Dashboard = () => {
   });
 
   const lowStockCount = data.products.filter(p => p.stock_quantity <= p.min_stock).length;
+
+  const stockStatusItems = [...data.products]
+    .sort((a, b) => {
+        const ratioA = a.stock_quantity / (a.min_stock || 1);
+        const ratioB = b.stock_quantity / (b.min_stock || 1);
+        return ratioA - ratioB;
+    })
+    .slice(0, 4);
 
   if (loading) return (
     <div className="space-y-4 animate-pulse">
@@ -167,7 +175,6 @@ const Dashboard = () => {
           value={formatCurrency(pendingRevenue)}
           subtitle="Owed by customers"
           icon={Clock}
-          variant={pendingRevenue > 0 ? 'default' : 'default'}
           footer={
             <div className="flex justify-between items-center text-[8px] font-black tracking-widest">
               <span className="text-neutral-400">PENDING:</span>
@@ -177,78 +184,29 @@ const Dashboard = () => {
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 items-start">
-        <div className="order-1 lg:order-2">
-          <Card className="p-0 overflow-hidden border-neutral-200/60 dark:border-neutral-800/60 shadow-sm bg-white dark:bg-neutral-900">
-            <div className="px-4 py-3 border-b border-neutral-100 dark:border-neutral-800/50 flex items-center gap-2 text-neutral-500 dark:text-neutral-400">
-              <Package size={14} />
-              <h2 className="text-[10px] font-black uppercase tracking-wider">Stock Status</h2>
-            </div>
-            <div className="p-4 space-y-4">
-              {data.products
-                .sort((a, b) => a.stock_quantity - b.stock_quantity)
-                .slice(0, 6)
-                .map((p, idx) => {
-                  const isLow = p.stock_quantity <= p.min_stock;
-                  return (
-                    <div key={idx} className="space-y-1.5">
-                      <div className="flex justify-between items-end">
-                        <div className="min-w-0 flex-1">
-                          <div className={cn(
-                            "text-xs font-bold truncate",
-                            isLow ? "text-rose-600 dark:text-rose-400" : "text-neutral-800 dark:text-neutral-200"
-                          )}>{p.name}</div>
-                          <div className="text-[9px] text-neutral-400 font-bold uppercase tracking-tight">{p.variant || 'Standard'}</div>
-                        </div>
-                        <div className="text-right shrink-0">
-                          <div className={cn(
-                            "text-[10px] font-black",
-                            isLow ? "text-rose-500" : "text-neutral-700 dark:text-neutral-300"
-                          )}>
-                            {p.stock_quantity} <span className="opacity-50 text-[8px]">QTY</span>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="h-1 w-full bg-neutral-100 dark:bg-neutral-800 rounded-full overflow-hidden">
-                        <motion.div
-                          initial={{ width: 0 }}
-                          animate={{ width: `${Math.min((p.stock_quantity / Math.max(p.min_stock * 2, 10)) * 100, 100)}%` }}
-                          transition={{ duration: 1, ease: "circOut" }}
-                          className={cn(
-                            "h-full rounded-full",
-                            isLow ? "bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.4)]" : p.stock_quantity <= p.min_stock * 2 ? "bg-amber-500" : "bg-neutral-900 dark:bg-neutral-200"
-                          )}
-                        />
-                      </div>
-                    </div>
-                  );
-                })}
-            </div>
-          </Card>
-        </div>
-
-        <div className="lg:col-span-2 order-2 lg:order-1">
-          <Card className="p-0 overflow-hidden border-neutral-200/60 dark:border-neutral-800/60 shadow-sm bg-white dark:bg-neutral-900">
-            <div className="px-4 py-3 flex justify-between items-center border-b border-neutral-100 dark:border-neutral-800/50">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 items-stretch">
+        {/* Recent Activity Card */}
+        <div className="lg:col-span-2 flex flex-col">
+          <Card className="p-0 flex-1 flex flex-col overflow-hidden border-neutral-200/60 dark:border-neutral-800/60 shadow-sm bg-white dark:bg-neutral-900">
+            <div className="px-5 py-4 flex justify-between items-center border-b border-neutral-100 dark:border-neutral-800/50">
               <div className="flex items-center gap-2 text-neutral-500 dark:text-neutral-400">
                 <Activity size={14} />
                 <h2 className="text-[10px] font-black uppercase tracking-wider">Recent Activity</h2>
               </div>
-              <Button
-                variant="ghost"
-                size="sm"
+              <button
                 onClick={() => navigate('/activity')}
-                className="h-6 text-[9px] font-black text-neutral-400 hover:text-black dark:hover:text-white uppercase tracking-widest"
+                className="group flex items-center gap-1.5 text-[10px] font-black text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100 uppercase tracking-widest transition-colors"
               >
-                View All <ArrowRight size={10} className="ml-1" />
-              </Button>
+                View All
+                <ArrowRight size={12} className="transform group-hover:translate-x-0.5 transition-transform" />
+              </button>
             </div>
-            <div className="divide-y divide-neutral-50 dark:divide-neutral-800/50">
+            <div className="divide-y divide-neutral-50 dark:divide-neutral-800/50 flex-1 flex flex-col">
               {[...data.bills, ...data.purchases]
                 .sort((a: any, b: any) => new Date(b.bill_date || b.purchase_date).getTime() - new Date(a.bill_date || a.purchase_date).getTime())
                 .slice(0, 4)
                 .map((item: any, idx) => (
-                  <div key={idx} className="flex items-center justify-between px-4 py-3 hover:bg-neutral-50/50 dark:hover:bg-white/[0.01] transition-colors">
+                  <div key={idx} className="flex items-center justify-between px-5 py-[15px] hover:bg-neutral-50/50 dark:hover:bg-white/[0.01] transition-colors flex-1">
                     <div className="flex items-center gap-3">
                       <div className={cn(
                         "w-8 h-8 rounded-lg flex items-center justify-center shrink-0",
@@ -272,6 +230,62 @@ const Dashboard = () => {
                     </div>
                   </div>
                 ))}
+            </div>
+          </Card>
+        </div>
+
+        {/* Stock Status Card */}
+        <div className="flex flex-col">
+          <Card className="p-0 flex-1 flex flex-col overflow-hidden border-neutral-200/60 dark:border-neutral-800/60 shadow-sm bg-white dark:bg-neutral-900">
+            <div className="px-5 py-4 flex justify-between items-center border-b border-neutral-100 dark:border-neutral-800/50">
+              <div className="flex items-center gap-2 text-neutral-500 dark:text-neutral-400">
+                <Package size={14} />
+                <h2 className="text-[10px] font-black uppercase tracking-wider">Stock Status</h2>
+              </div>
+              <button
+                onClick={() => navigate('/inventory')}
+                className="group flex items-center gap-1.5 text-[10px] font-black text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100 uppercase tracking-widest transition-colors"
+              >
+                View Inventory
+                <ArrowRight size={12} className="transform group-hover:translate-x-0.5 transition-transform" />
+              </button>
+            </div>
+            <div className="divide-y divide-neutral-50 dark:divide-neutral-800/50 flex-1 flex flex-col">
+              {stockStatusItems.map((p, idx) => {
+                const isLow = p.stock_quantity <= p.min_stock;
+                return (
+                  <div key={idx} className="px-5 py-[13px] flex-1 flex flex-col justify-center space-y-2">
+                    <div className="flex justify-between items-end">
+                      <div className="min-w-0 flex-1">
+                        <div className={cn(
+                          "text-xs font-bold truncate leading-tight",
+                          isLow ? "text-rose-600 dark:text-rose-400" : "text-neutral-800 dark:text-neutral-200"
+                        )}>{p.name}</div>
+                        <div className="text-[9px] text-neutral-400 font-bold uppercase tracking-tight leading-tight">{p.variant || 'Standard'}</div>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <div className={cn(
+                          "text-[10px] font-black leading-none",
+                          isLow ? "text-rose-500" : "text-neutral-700 dark:text-neutral-300"
+                        )}>
+                          {p.stock_quantity} <span className="opacity-50 text-[8px]">QTY</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="h-1 w-full bg-neutral-100 dark:bg-neutral-800 rounded-full overflow-hidden">
+                      <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: `${Math.min((p.stock_quantity / Math.max(p.min_stock * 2, 10)) * 100, 100)}%` }}
+                        transition={{ duration: 1, ease: "circOut" }}
+                        className={cn(
+                          "h-full rounded-full",
+                          isLow ? "bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.4)]" : p.stock_quantity <= p.min_stock * 2 ? "bg-amber-500" : "bg-neutral-900 dark:bg-neutral-200"
+                        )}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </Card>
         </div>
