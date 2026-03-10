@@ -20,6 +20,7 @@ interface SelectProps {
   fullWidth?: boolean;
   name?: string;
   disabled?: boolean;
+  direction?: "up" | "down"; // NEW PROP
 }
 
 export const Select: React.FC<SelectProps> = ({
@@ -34,6 +35,7 @@ export const Select: React.FC<SelectProps> = ({
   fullWidth = true,
   name,
   disabled = false,
+  direction = "down", // default to down
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -107,11 +109,14 @@ export const Select: React.FC<SelectProps> = ({
         <AnimatePresence>
           {isOpen && (
             <motion.div
-              initial={{ opacity: 0, y: -10, scale: 0.95 }}
-              animate={{ opacity: 1, y: 4, scale: 1 }}
-              exit={{ opacity: 0, y: -10, scale: 0.95 }}
+              initial={{ opacity: 0, y: direction === "down" ? -10 : 10, scale: 0.95 }}
+              animate={{ opacity: 1, y: direction === "down" ? 4 : -4, scale: 1 }}
+              exit={{ opacity: 0, y: direction === "down" ? -10 : 10, scale: 0.95 }}
               transition={{ duration: 0.1, ease: "easeOut" }}
-              className="absolute left-0 right-0 z-[100] mt-1 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl shadow-xl overflow-hidden max-h-60 overflow-y-auto min-w-[150px]"
+              className={cn(
+                "absolute left-0 right-0 z-[100] bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl shadow-xl overflow-hidden max-h-60 overflow-y-auto min-w-[150px]",
+                direction === "down" ? "top-full mt-1" : "bottom-full mb-1"
+              )}
             >
               <div className="p-1">
                 {options.length === 0 ? (

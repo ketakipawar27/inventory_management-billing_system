@@ -6,27 +6,24 @@ import {
   Calendar,
   User,
   Phone,
-  ChevronDown,
-  ChevronUp,
-  Package,
   Clock,
-  AlertCircle,
   Filter,
+  ArrowUpRight,
 } from "lucide-react";
 import { useToast } from "../../context/ToastContext";
 import { Card } from "../ui/Card";
 import { Input } from "../ui/Input";
-import { Button } from "../ui/Button";
 import { Select } from "../ui/Select";
 import { cn } from "../../lib/utils";
+
+type FilterType = "all" | "pending" | "cash" | "online";
 
 export const BillHistory: React.FC = () => {
   const { showToast } = useToast();
   const [bills, setBills] = useState<Bill[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [expandedBillId, setExpandedBillId] = useState<number | null>(null);
-  const [filterMode, setFilterMode] = useState<"all" | "pending">("all");
+  const [filterMode, setFilterMode] = useState<FilterType>("all");
   const [updatingId, setUpdatingId] = useState<number | null>(null);
 
   const fetchBills = useCallback(async () => {
@@ -63,9 +60,9 @@ export const BillHistory: React.FC = () => {
 
     try {
       await api.bills.update(id, { payment_method: newStatus as any });
-      showToast(`Bill #${id} updated to ${newStatus}`, "success");
+      showToast(`Status updated`, "success");
     } catch {
-      showToast("Failed to update status", "error");
+      showToast("Update failed", "error");
       setBills(oldBills);
     } finally {
       setUpdatingId(null);
@@ -78,8 +75,10 @@ export const BillHistory: React.FC = () => {
         .toLowerCase()
         .includes(searchTerm.toLowerCase()) ||
       (b.customer_phone && b.customer_phone.includes(searchTerm));
+
     const matchesStatus =
-      filterMode === "all" || b.payment_method === "pending";
+      filterMode === "all" || b.payment_method === filterMode;
+
     return matchesSearch && matchesStatus;
   });
 
@@ -89,11 +88,11 @@ export const BillHistory: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="space-y-4">
-        {[1, 2, 3].map((i) => (
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {[1, 2, 3, 4].map((i) => (
           <div
             key={i}
-            className="h-24 sm:h-32 bg-neutral-100 dark:bg-neutral-900 animate-pulse rounded-3xl"
+            className="h-32 bg-neutral-100 dark:bg-neutral-900 animate-pulse rounded-2xl"
           />
         ))}
       </div>
@@ -101,192 +100,154 @@ export const BillHistory: React.FC = () => {
   }
 
   return (
-    <div className="max-w-6xl mx-auto space-y-4 sm:space-y-6">
-      {/* SUMMARY & FILTER */}
-      <div className="grid grid-cols-1 sm:grid-cols-12 gap-4">
-        <Card className="sm:col-span-5 p-4 flex items-center gap-4 bg-amber-50 dark:bg-amber-900/10 border-amber-100 dark:border-amber-900/30">
-          <div className="p-3 bg-amber-100 dark:bg-amber-900/30 rounded-2xl text-amber-600">
-            <Clock size={20} />
+    <div className="space-y-4 max-w-5xl mx-auto px-1 sm:px-0 pb-10 overflow-visible">
+      {/* PENDING SUMMARY - COMPACT */}
+      <div className="bg-amber-50/50 dark:bg-amber-900/10 border border-amber-100/50 dark:border-amber-900/20 rounded-2xl p-4 flex items-center gap-4">
+        <div className="p-2.5 bg-amber-100 dark:bg-amber-900/30 rounded-xl text-amber-600 shrink-0">
+          <Clock size={20} />
+        </div>
+        <div>
+          <div className="text-[9px] font-black text-amber-600/80 dark:text-amber-500 uppercase tracking-widest leading-none mb-1">
+            Pending Amount
           </div>
-          <div>
-            <div className="text-[9px] font-black text-amber-600 dark:text-amber-500 uppercase tracking-widest">
-              Pending Amount
-            </div>
-            <div className="text-xl sm:text-2xl font-black tracking-tight">
-              ₹{totalPendingAmount.toLocaleString('en-IN')}
-            </div>
+          <div className="text-xl font-black tracking-tight leading-none text-neutral-900 dark:text-white">
+            ₹{totalPendingAmount.toLocaleString('en-IN')}
           </div>
-        </Card>
-
-        <Card className="sm:col-span-7 p-1.5 flex gap-1 items-center">
-          <Button
-            variant={filterMode === "all" ? "primary" : "ghost"}
-            size="md"
-            onClick={() => setFilterMode("all")}
-            className="flex-1 rounded-xl text-xs"
-            icon={<Filter size={14} />}
-          >
-            All Bills
-          </Button>
-          <Button
-            variant={filterMode === "pending" ? "primary" : "ghost"}
-            size="md"
-            onClick={() => setFilterMode("pending")}
-            className={cn(
-              "flex-1 rounded-xl text-xs",
-              filterMode === "pending" && "bg-amber-500 hover:bg-amber-600 dark:bg-amber-500 dark:text-white"
-            )}
-            icon={<AlertCircle size={14} />}
-          >
-            Pending
-          </Button>
-        </Card>
+        </div>
       </div>
 
-      {/* SEARCH */}
-      <Input
-        placeholder="Search name or phone..."
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-        icon={<Search size={18} />}
-        className="shadow-sm"
-      />
+      {/* SEARCH + DROP DOWN FILTER */}
+      <div className="flex flex-col sm:flex-row gap-2.5 items-stretch sm:items-center">
+        <div className="flex-1 relative group min-w-0">
+          <Input
+            placeholder="Search name or phone..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            icon={<Search size={16} className="text-neutral-400" />}
+            className="h-10 text-xs bg-neutral-50/50 dark:bg-black/30 border-transparent rounded-xl px-4 pl-10"
+          />
+        </div>
 
-      {/* BILL LIST */}
-      <div className="space-y-3 sm:space-y-4">
+        <div className="w-full sm:w-[160px] shrink-0">
+          <Select
+            fullWidth
+            value={filterMode}
+            onChange={(e) => setFilterMode(e.target.value as FilterType)}
+            icon={<Filter size={14} className="text-neutral-400" />}
+            className="h-10 text-[11px] font-bold uppercase tracking-tight rounded-xl px-3 bg-neutral-50/50 dark:bg-black/30 border-transparent shadow-none"
+            options={[
+              { value: "all", label: "All Bills" },
+              { value: "pending", label: "Pending" },
+              { value: "cash", label: "Cash" },
+              { value: "online", label: "Online" },
+            ]}
+          />
+        </div>
+      </div>
+
+      {/* BILL LIST - GRID VIEW */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {filteredBills.length === 0 ? (
-          <div className="text-center py-16 text-neutral-400 font-medium italic border-2 border-dashed border-neutral-100 dark:border-neutral-900 rounded-3xl">
-            No records found.
+          <div className="col-span-full text-center py-20 text-neutral-400 text-[10px] font-black uppercase tracking-[0.2em] italic border-2 border-dashed border-neutral-100 dark:border-neutral-900 rounded-2xl">
+            No matching records
           </div>
         ) : (
           filteredBills.map((bill) => (
-            <div
+            <Card
               key={bill.id}
               className={cn(
-                "border rounded-3xl overflow-hidden transition-all",
-                bill.payment_method === "pending"
-                  ? "border-amber-300 bg-amber-50/20 dark:border-amber-900/40"
-                  : "border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-sm"
+                "p-4 group border-neutral-200/50 dark:border-neutral-800/50 shadow-sm rounded-2xl bg-white dark:bg-neutral-900 transition-all",
+                bill.payment_method === "pending" && "border-amber-200 bg-amber-50/5 dark:bg-amber-900/5"
               )}
             >
-              {/* HEADER */}
-              <div
-                className="p-4 sm:p-5 flex flex-col md:flex-row justify-between md:items-center cursor-pointer gap-4 group"
-                onClick={() =>
-                  setExpandedBillId(
-                    expandedBillId === bill.id ? null : bill.id
-                  )
-                }
-              >
-                <div className="flex items-center gap-3 sm:gap-4">
-                  <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-2xl bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center text-neutral-400 group-hover:text-black dark:group-hover:text-white transition-colors">
-                    <User size={20} />
+              {/* Card Header */}
+              <div className="flex justify-between items-start mb-4 pb-3 border-b border-neutral-50 dark:border-neutral-800/50">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className={cn(
+                    "shrink-0 p-2 rounded-xl transition-all shadow-sm",
+                    bill.payment_method === "pending"
+                      ? "bg-black text-white dark:bg-white dark:text-black"
+                      : "bg-neutral-100 dark:bg-neutral-800 text-neutral-400"
+                  )}>
+                    <User size={16} />
                   </div>
                   <div className="min-w-0">
-                    <div className="font-black text-neutral-900 dark:text-white tracking-tight truncate uppercase text-sm sm:text-base">
+                    <h3 className="font-bold text-[13px] text-neutral-900 dark:text-white truncate tracking-tight leading-tight">
                       {bill.customer_name}
-                    </div>
-                    <div className="text-[9px] sm:text-[10px] font-bold text-neutral-400 flex flex-wrap gap-x-3 gap-y-1 uppercase tracking-widest mt-0.5">
+                    </h3>
+                    <div className="flex flex-wrap items-center gap-2 text-[8px] font-bold text-neutral-400 mt-1 uppercase tracking-widest leading-none">
                       <span className="flex items-center gap-1">
-                        <Calendar size={12} /> {bill.bill_date}
+                        <Calendar size={10} /> {bill.bill_date}
                       </span>
                       {bill.customer_phone && (
                         <span className="flex items-center gap-1">
-                          <Phone size={12} /> {bill.customer_phone}
+                          <Phone size={10} /> {bill.customer_phone}
                         </span>
                       )}
                     </div>
                   </div>
                 </div>
-
-                <div className="flex items-center justify-between md:justify-end gap-4 sm:gap-6">
-                  <div onClick={(e) => e.stopPropagation()}>
-                    <Select
-                      value={bill.payment_method}
-                      disabled={updatingId === bill.id}
-                      onChange={(e) =>
-                        handleStatusChange(bill.id, e.target.value)
-                      }
-                      className={cn(
-                        "py-1 px-3 rounded-xl text-[9px] font-black uppercase tracking-widest min-w-[100px]",
-                        bill.payment_method === 'pending'
-                          ? 'bg-amber-100 border-amber-200 text-amber-700'
-                          : 'bg-neutral-50 dark:bg-neutral-800 border-neutral-200 dark:border-neutral-700'
-                      )}
-                      options={[
-                        { value: "cash", label: "Cash" },
-                        { value: "online", label: "Online" },
-                        { value: "pending", label: "Pending" },
-                      ]}
-                    />
+                <div className="text-right shrink-0">
+                  <div className="text-[8px] font-black text-neutral-400 uppercase tracking-widest mb-0.5 leading-none">
+                    TOTAL
                   </div>
-
-                  <div className="text-right shrink-0">
-                    <div className="text-[9px] text-neutral-400 font-black uppercase tracking-widest">Total</div>
-                    <div className="font-black text-lg sm:text-xl tracking-tight">
-                      ₹{Number(bill.total_amount).toLocaleString('en-IN')}
-                    </div>
-                  </div>
-
-                  <div className="text-neutral-300 hidden sm:block">
-                    {expandedBillId === bill.id ? (
-                      <ChevronUp size={20} />
-                    ) : (
-                      <ChevronDown size={20} />
-                    )}
+                  <div className="text-sm font-black tracking-tight text-neutral-900 dark:text-white leading-none">
+                    ₹{Number(bill.total_amount).toLocaleString('en-IN')}
                   </div>
                 </div>
               </div>
 
-              {/* DETAILS */}
-              {expandedBillId === bill.id && (
-                <div className="border-t border-neutral-100 dark:border-neutral-800 bg-neutral-50/50 dark:bg-black/20 p-4 sm:p-6 space-y-6">
-                  <div>
-                    <div className="text-[10px] font-black uppercase text-neutral-400 mb-4 flex items-center gap-1 tracking-widest">
-                      <Package size={12} /> Items Breakdown
+              {/* Card Body - Items List */}
+              <div className="space-y-1.5 mb-4 px-1">
+                {(bill.items_detail || []).map((item: any, idx: number) => (
+                  <div key={idx} className="flex items-center justify-between text-[10px] px-2 py-1.5 rounded-lg bg-neutral-50/50 dark:bg-neutral-900/30 border border-transparent hover:border-neutral-100 dark:hover:border-neutral-800 transition-all">
+                    <div className="flex flex-col min-w-0">
+                      <div className="font-bold text-neutral-800 dark:text-neutral-200 truncate uppercase tracking-tight">
+                        {item.product_name || `Product #${item.product_id}`}
+                      </div>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <span className="text-[9px] font-black text-neutral-500 dark:text-neutral-400">
+                          {item.quantity} UNITS
+                        </span>
+                        <span className="text-[8px] text-neutral-400 font-bold uppercase tracking-tight">
+                          @ ₹{Number(item.price_per_unit).toLocaleString('en-IN')}
+                        </span>
+                      </div>
                     </div>
-
-                    <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
-                      <table className="w-full text-xs sm:text-sm min-w-[400px]">
-                        <thead>
-                          <tr className="text-left text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-neutral-400 border-b border-neutral-200 dark:border-neutral-800">
-                            <th className="pb-3">Product</th>
-                            <th className="pb-3 text-right">Qty</th>
-                            <th className="pb-3 text-right">Rate</th>
-                            <th className="pb-3 text-right">Total</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-neutral-100 dark:divide-neutral-800">
-                          {(bill.items_detail || []).map((item: any, idx: number) => (
-                            <tr key={idx} className="hover:bg-white/40 dark:hover:bg-neutral-800/20 transition-colors">
-                              <td className="py-3 font-black text-neutral-800 dark:text-neutral-200 tracking-tight uppercase">
-                                {item.product_name || `Product #${item.product_id}`}
-                              </td>
-                              <td className="py-3 text-right font-bold">
-                                {item.quantity}
-                              </td>
-                              <td className="py-3 text-right text-neutral-500 font-medium">
-                                ₹{Number(item.price_per_unit).toLocaleString('en-IN')}
-                              </td>
-                              <td className="py-3 text-right font-black text-neutral-900 dark:text-white tracking-tight">
-                                ₹{Number(item.total_price).toLocaleString('en-IN')}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
+                    <div className="shrink-0 opacity-20 group-hover:opacity-100 transition-opacity">
+                      <ArrowUpRight size={12} className="text-neutral-400" />
                     </div>
                   </div>
+                ))}
+              </div>
 
-                  {bill.customer_address && (
-                    <div className="pt-4 border-t border-neutral-100 dark:border-neutral-800">
-                      <strong className="text-neutral-400 uppercase text-[9px] font-black tracking-widest block mb-2">Shipping Address</strong>
-                      <p className="text-xs text-neutral-600 dark:text-neutral-400 font-medium leading-relaxed">{bill.customer_address}</p>
-                    </div>
-                  )}
+              {/* Card Footer - Compact Status Select */}
+              <div className="flex items-center justify-between pt-3 border-t border-neutral-50 dark:border-neutral-800/50">
+                <div className="text-[8px] font-black text-neutral-400 uppercase tracking-widest">
+                  PAYMENT MODE
                 </div>
-              )}
-            </div>
+                <div className="w-[120px]">
+                  <Select
+                    fullWidth
+                    direction="up"
+                    value={bill.payment_method}
+                    disabled={updatingId === bill.id}
+                    onChange={(e) => handleStatusChange(bill.id, e.target.value)}
+                    className={cn(
+                      "h-8 text-[9px] font-black uppercase tracking-tight rounded-xl px-2.5",
+                      bill.payment_method === 'pending'
+                        ? 'bg-amber-100/50 border-amber-200 text-amber-700'
+                        : 'bg-neutral-50 dark:bg-neutral-900 border-neutral-100 dark:border-neutral-700'
+                    )}
+                    options={[
+                      { value: "cash", label: "Cash" },
+                      { value: "online", label: "Online" },
+                      { value: "pending", label: "Pending" },
+                    ]}
+                  />
+                </div>
+              </div>
+            </Card>
           ))
         )}
       </div>
