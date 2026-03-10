@@ -8,6 +8,7 @@ import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
 import { PageHeader } from '../components/ui/PageHeader';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 
 const StatCard = ({ title, value, subtitle, icon: Icon, trend, variant = 'default', footer }: any) => (
   <Card hoverable className={cn(
@@ -41,6 +42,7 @@ const StatCard = ({ title, value, subtitle, icon: Icon, trend, variant = 'defaul
 );
 
 const Dashboard = () => {
+  const navigate = useNavigate();
   const [data, setData] = useState<{ products: Product[], purchases: Purchase[], bills: Bill[] }>({ products: [], purchases: [], bills: [] });
   const [loading, setLoading] = useState(true);
 
@@ -117,7 +119,7 @@ const Dashboard = () => {
               </Badge>
             )}
             <Button variant="outline" size="sm" className="h-8 text-[11px] px-3">Export</Button>
-            <Button size="sm" className="h-8 text-[11px] px-3">New Sale</Button>
+            <Button size="sm" className="h-8 text-[11px] px-3" onClick={() => navigate('/billing')}>New Sale</Button>
           </div>
         }
       />
@@ -232,14 +234,19 @@ const Dashboard = () => {
                 <Activity size={14} />
                 <h2 className="text-[10px] font-black uppercase tracking-wider">Recent Activity</h2>
               </div>
-              <Button variant="ghost" size="sm" className="h-6 text-[9px] font-black text-neutral-400 hover:text-black dark:hover:text-white uppercase tracking-widest">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate('/activity')}
+                className="h-6 text-[9px] font-black text-neutral-400 hover:text-black dark:hover:text-white uppercase tracking-widest"
+              >
                 View All <ArrowRight size={10} className="ml-1" />
               </Button>
             </div>
             <div className="divide-y divide-neutral-50 dark:divide-neutral-800/50">
               {[...data.bills, ...data.purchases]
                 .sort((a: any, b: any) => new Date(b.bill_date || b.purchase_date).getTime() - new Date(a.bill_date || a.purchase_date).getTime())
-                .slice(0, 6)
+                .slice(0, 4)
                 .map((item: any, idx) => (
                   <div key={idx} className="flex items-center justify-between px-4 py-3 hover:bg-neutral-50/50 dark:hover:bg-white/[0.01] transition-colors">
                     <div className="flex items-center gap-3">
