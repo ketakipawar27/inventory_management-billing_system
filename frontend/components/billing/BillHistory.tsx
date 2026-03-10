@@ -16,9 +16,8 @@ import {
 import { useToast } from "../../context/ToastContext";
 import { Card } from "../ui/Card";
 import { Input } from "../ui/Input";
-import { Select } from "../ui/Select";
 import { Button } from "../ui/Button";
-import { Badge } from "../ui/Badge";
+import { Select } from "../ui/Select";
 import { cn } from "../../lib/utils";
 
 export const BillHistory: React.FC = () => {
@@ -64,9 +63,9 @@ export const BillHistory: React.FC = () => {
 
     try {
       await api.bills.update(id, { payment_method: newStatus as any });
-      showToast(`Bill #${id} status updated to ${newStatus}`, "success");
+      showToast(`Bill #${id} updated to ${newStatus}`, "success");
     } catch {
-      showToast("Failed to update bill status", "error");
+      showToast("Failed to update status", "error");
       setBills(oldBills);
     } finally {
       setUpdatingId(null);
@@ -78,8 +77,7 @@ export const BillHistory: React.FC = () => {
       (b.customer_name || "")
         .toLowerCase()
         .includes(searchTerm.toLowerCase()) ||
-      (b.customer_phone &&
-        b.customer_phone.includes(searchTerm));
+      (b.customer_phone && b.customer_phone.includes(searchTerm));
     const matchesStatus =
       filterMode === "all" || b.payment_method === "pending";
     return matchesSearch && matchesStatus;
@@ -95,7 +93,7 @@ export const BillHistory: React.FC = () => {
         {[1, 2, 3].map((i) => (
           <div
             key={i}
-            className="h-32 bg-neutral-100 dark:bg-neutral-900 animate-pulse rounded-3xl"
+            className="h-24 sm:h-32 bg-neutral-100 dark:bg-neutral-900 animate-pulse rounded-3xl"
           />
         ))}
       </div>
@@ -103,29 +101,29 @@ export const BillHistory: React.FC = () => {
   }
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6">
+    <div className="max-w-6xl mx-auto space-y-4 sm:space-y-6">
       {/* SUMMARY & FILTER */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="p-5 flex gap-4 bg-amber-50 dark:bg-amber-900/10 border-amber-100 dark:border-amber-900/30">
+      <div className="grid grid-cols-1 sm:grid-cols-12 gap-4">
+        <Card className="sm:col-span-5 p-4 flex items-center gap-4 bg-amber-50 dark:bg-amber-900/10 border-amber-100 dark:border-amber-900/30">
           <div className="p-3 bg-amber-100 dark:bg-amber-900/30 rounded-2xl text-amber-600">
-            <Clock size={24} />
+            <Clock size={20} />
           </div>
           <div>
-            <div className="text-[10px] font-black text-amber-600 dark:text-amber-500 uppercase tracking-widest">
+            <div className="text-[9px] font-black text-amber-600 dark:text-amber-500 uppercase tracking-widest">
               Pending Amount
             </div>
-            <div className="text-2xl font-black tracking-tight">
+            <div className="text-xl sm:text-2xl font-black tracking-tight">
               ₹{totalPendingAmount.toLocaleString('en-IN')}
             </div>
           </div>
         </Card>
 
-        <Card className="md:col-span-2 p-1.5 flex gap-1 items-center">
+        <Card className="sm:col-span-7 p-1.5 flex gap-1 items-center">
           <Button
             variant={filterMode === "all" ? "primary" : "ghost"}
             size="md"
             onClick={() => setFilterMode("all")}
-            className="flex-1 rounded-xl"
+            className="flex-1 rounded-xl text-xs"
             icon={<Filter size={14} />}
           >
             All Bills
@@ -135,19 +133,19 @@ export const BillHistory: React.FC = () => {
             size="md"
             onClick={() => setFilterMode("pending")}
             className={cn(
-              "flex-1 rounded-xl",
+              "flex-1 rounded-xl text-xs",
               filterMode === "pending" && "bg-amber-500 hover:bg-amber-600 dark:bg-amber-500 dark:text-white"
             )}
             icon={<AlertCircle size={14} />}
           >
-            Pending Only
+            Pending
           </Button>
         </Card>
       </div>
 
       {/* SEARCH */}
       <Input
-        placeholder="Search customer name or phone"
+        placeholder="Search name or phone..."
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
         icon={<Search size={18} />}
@@ -155,9 +153,9 @@ export const BillHistory: React.FC = () => {
       />
 
       {/* BILL LIST */}
-      <div className="space-y-4">
+      <div className="space-y-3 sm:space-y-4">
         {filteredBills.length === 0 ? (
-          <div className="text-center py-20 text-neutral-400 font-medium italic border-2 border-dashed border-neutral-100 dark:border-neutral-900 rounded-3xl">
+          <div className="text-center py-16 text-neutral-400 font-medium italic border-2 border-dashed border-neutral-100 dark:border-neutral-900 rounded-3xl">
             No records found.
           </div>
         ) : (
@@ -167,26 +165,28 @@ export const BillHistory: React.FC = () => {
               className={cn(
                 "border rounded-3xl overflow-hidden transition-all",
                 bill.payment_method === "pending"
-                  ? "border-amber-300 bg-amber-50/10 dark:border-amber-900/20"
+                  ? "border-amber-300 bg-amber-50/20 dark:border-amber-900/40"
                   : "border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-sm"
               )}
             >
               {/* HEADER */}
               <div
-                className="p-5 flex flex-col sm:flex-row justify-between sm:items-center cursor-pointer gap-4 group"
+                className="p-4 sm:p-5 flex flex-col md:flex-row justify-between md:items-center cursor-pointer gap-4 group"
                 onClick={() =>
                   setExpandedBillId(
                     expandedBillId === bill.id ? null : bill.id
                   )
                 }
               >
-                <div className="flex items-center gap-4">
-                  <div className="h-12 w-12 rounded-2xl bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center text-neutral-400 group-hover:text-black dark:group-hover:text-white transition-colors">
-                    <User size={24} />
+                <div className="flex items-center gap-3 sm:gap-4">
+                  <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-2xl bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center text-neutral-400 group-hover:text-black dark:group-hover:text-white transition-colors">
+                    <User size={20} />
                   </div>
-                  <div>
-                    <div className="font-black text-neutral-900 dark:text-white tracking-tight">{bill.customer_name}</div>
-                    <div className="text-[10px] font-bold text-neutral-400 flex gap-3 uppercase tracking-widest mt-0.5">
+                  <div className="min-w-0">
+                    <div className="font-black text-neutral-900 dark:text-white tracking-tight truncate uppercase text-sm sm:text-base">
+                      {bill.customer_name}
+                    </div>
+                    <div className="text-[9px] sm:text-[10px] font-bold text-neutral-400 flex flex-wrap gap-x-3 gap-y-1 uppercase tracking-widest mt-0.5">
                       <span className="flex items-center gap-1">
                         <Calendar size={12} /> {bill.bill_date}
                       </span>
@@ -199,33 +199,36 @@ export const BillHistory: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between sm:justify-end gap-6">
-                  <Select
-                    value={bill.payment_method}
-                    disabled={updatingId === bill.id}
-                    onClick={(e) => e.stopPropagation()}
-                    onChange={(e) =>
-                      handleStatusChange(bill.id, e.target.value)
-                    }
-                    className={cn(
-                      "py-1.5 px-3 rounded-xl text-[10px] font-black uppercase tracking-widest",
-                      bill.payment_method === 'pending' ? 'bg-amber-100 border-amber-200 text-amber-700' : 'bg-neutral-50 dark:bg-neutral-800 border-neutral-200 dark:border-neutral-700'
-                    )}
-                    options={[
-                      { value: "cash", label: "Cash" },
-                      { value: "online", label: "Online" },
-                      { value: "pending", label: "Pending" },
-                    ]}
-                  />
+                <div className="flex items-center justify-between md:justify-end gap-4 sm:gap-6">
+                  <div onClick={(e) => e.stopPropagation()}>
+                    <Select
+                      value={bill.payment_method}
+                      disabled={updatingId === bill.id}
+                      onChange={(e) =>
+                        handleStatusChange(bill.id, e.target.value)
+                      }
+                      className={cn(
+                        "py-1 px-3 rounded-xl text-[9px] font-black uppercase tracking-widest min-w-[100px]",
+                        bill.payment_method === 'pending'
+                          ? 'bg-amber-100 border-amber-200 text-amber-700'
+                          : 'bg-neutral-50 dark:bg-neutral-800 border-neutral-200 dark:border-neutral-700'
+                      )}
+                      options={[
+                        { value: "cash", label: "Cash" },
+                        { value: "online", label: "Online" },
+                        { value: "pending", label: "Pending" },
+                      ]}
+                    />
+                  </div>
 
-                  <div className="text-right">
-                    <div className="text-[10px] text-neutral-400 font-black uppercase tracking-widest">Total</div>
-                    <div className="font-black text-xl tracking-tight">
+                  <div className="text-right shrink-0">
+                    <div className="text-[9px] text-neutral-400 font-black uppercase tracking-widest">Total</div>
+                    <div className="font-black text-lg sm:text-xl tracking-tight">
                       ₹{Number(bill.total_amount).toLocaleString('en-IN')}
                     </div>
                   </div>
 
-                  <div className="text-neutral-400 hidden sm:block">
+                  <div className="text-neutral-300 hidden sm:block">
                     {expandedBillId === bill.id ? (
                       <ChevronUp size={20} />
                     ) : (
@@ -237,16 +240,16 @@ export const BillHistory: React.FC = () => {
 
               {/* DETAILS */}
               {expandedBillId === bill.id && (
-                <div className="border-t border-neutral-100 dark:border-neutral-800 bg-neutral-50/50 dark:bg-black/20 p-6 space-y-6">
+                <div className="border-t border-neutral-100 dark:border-neutral-800 bg-neutral-50/50 dark:bg-black/20 p-4 sm:p-6 space-y-6">
                   <div>
                     <div className="text-[10px] font-black uppercase text-neutral-400 mb-4 flex items-center gap-1 tracking-widest">
                       <Package size={12} /> Items Breakdown
                     </div>
 
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-sm">
+                    <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
+                      <table className="w-full text-xs sm:text-sm min-w-[400px]">
                         <thead>
-                          <tr className="text-left text-[10px] font-black uppercase tracking-widest text-neutral-400 border-b border-neutral-200 dark:border-neutral-800">
+                          <tr className="text-left text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-neutral-400 border-b border-neutral-200 dark:border-neutral-800">
                             <th className="pb-3">Product</th>
                             <th className="pb-3 text-right">Qty</th>
                             <th className="pb-3 text-right">Rate</th>
@@ -256,7 +259,7 @@ export const BillHistory: React.FC = () => {
                         <tbody className="divide-y divide-neutral-100 dark:divide-neutral-800">
                           {(bill.items_detail || []).map((item: any, idx: number) => (
                             <tr key={idx} className="hover:bg-white/40 dark:hover:bg-neutral-800/20 transition-colors">
-                              <td className="py-3 font-black text-neutral-800 dark:text-neutral-200 tracking-tight">
+                              <td className="py-3 font-black text-neutral-800 dark:text-neutral-200 tracking-tight uppercase">
                                 {item.product_name || `Product #${item.product_id}`}
                               </td>
                               <td className="py-3 text-right font-bold">
@@ -277,7 +280,7 @@ export const BillHistory: React.FC = () => {
 
                   {bill.customer_address && (
                     <div className="pt-4 border-t border-neutral-100 dark:border-neutral-800">
-                      <strong className="text-neutral-400 uppercase text-[10px] font-black tracking-widest block mb-2">Shipping Address</strong>
+                      <strong className="text-neutral-400 uppercase text-[9px] font-black tracking-widest block mb-2">Shipping Address</strong>
                       <p className="text-xs text-neutral-600 dark:text-neutral-400 font-medium leading-relaxed">{bill.customer_address}</p>
                     </div>
                   )}

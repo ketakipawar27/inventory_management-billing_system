@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { api } from "../api";
-import { Product } from "../types";
+import { Product, Category } from "../types";
 import { ProductGrid } from "../components/billing/ProductGrid";
 import { BillCart, CartItem } from "../components/billing/BillCart";
 import { BillForm } from "../components/billing/BillForm";
@@ -9,15 +9,13 @@ import { ShoppingCart, History, Plus } from "lucide-react";
 import { useToast } from "../context/ToastContext";
 import { Button } from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
-import { Badge } from "../components/ui/Badge";
 import { cn } from "../lib/utils";
 
 const Billing: React.FC = () => {
   const { showToast } = useToast();
-  // Mode State: 'create' or 'history'
   const [mode, setMode] = useState<"create" | "history">("create");
-
   const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [cart, setCart] = useState<CartItem[]>([]);
 
   // Form State
@@ -28,20 +26,22 @@ const Billing: React.FC = () => {
 
   const [loading, setLoading] = useState(false);
 
-  const fetchProducts = useCallback(async () => {
+  const fetchData = useCallback(async () => {
     try {
-      const data = await api.products.list();
-      setProducts(data.filter(p => p.is_active));
+      const [productsData, categoriesData] = await Promise.all([
+        api.products.list(),
+        api.categories.list()
+      ]);
+      setProducts(productsData.filter(p => p.is_active));
+      setCategories(categoriesData);
     } catch (err) {
-      showToast("Failed to fetch products", "error");
+      showToast("Failed to fetch data", "error");
     }
   }, [showToast]);
 
   useEffect(() => {
-    fetchProducts();
-  }, [fetchProducts]);
-
-  /* ---------------- LOGIC ---------------- */
+    fetchData();
+  }, [fetchData]);
 
   const addToCart = (product: Product) => {
     if (cart.find((c) => c.product.id === product.id)) return;
@@ -85,9 +85,7 @@ const Billing: React.FC = () => {
   const total = cart.reduce((sum, i) => sum + (Number(i.quantity) || 0) * i.price, 0);
 
   const handleSubmit = async () => {
-    // 1. Prevent double submission and empty cart
     if (loading || !customerName || cart.length === 0) return;
-
     setLoading(true);
     try {
       await api.bills.create({
@@ -102,11 +100,7 @@ const Billing: React.FC = () => {
           price_per_unit: i.price,
         })),
       });
-
-      // 2. Refresh products to update stock quantities locally
-      await fetchProducts();
-
-      // 3. Reset UI
+      await fetchData();
       setCart([]);
       setCustomerName("");
       setCustomerPhone("");
@@ -121,20 +115,19 @@ const Billing: React.FC = () => {
   };
 
   return (
-    <div className="p-4 h-screen lg:overflow-hidden flex flex-col">
-      
+    <div className="space-y-6 pb-20 lg:pb-0">
       {/* HEADER / MODE TOGGLE */}
-      <div className="flex justify-center mb-6 shrink-0">
-          <div className="bg-white dark:bg-neutral-900 p-1.5 rounded-2xl border border-neutral-200 dark:border-neutral-800 flex gap-1 shadow-sm">
+      <div className="flex justify-center shrink-0">
+          <div className="bg-white dark:bg-neutral-900 p-1 rounded-2xl border border-neutral-200 dark:border-neutral-800 flex gap-1 shadow-sm w-full max-w-md sm:w-auto">
               <Button
                 variant={mode === "create" ? "primary" : "ghost"}
                 size="md"
                 onClick={() => setMode("create")}
                 className={cn(
-                   "px-6 rounded-xl",
+                   "flex-1 sm:flex-none px-6 rounded-xl transition-all font-black uppercase text-[10px] tracking-widest",
                    mode === "create" ? "shadow-md" : "text-neutral-500"
                 )}
-                icon={<Plus size={16} />}
+                icon={<Plus size={14} />}
               >
                  New Bill
               </Button>
@@ -143,10 +136,10 @@ const Billing: React.FC = () => {
                 size="md"
                 onClick={() => setMode("history")}
                 className={cn(
-                   "px-6 rounded-xl",
+                   "flex-1 sm:flex-none px-6 rounded-xl transition-all font-black uppercase text-[10px] tracking-widest",
                    mode === "history" ? "shadow-md" : "text-neutral-500"
                 )}
-                icon={<History size={16} />}
+                icon={<History size={14} />}
               >
                  History
               </Button>
@@ -155,39 +148,37 @@ const Billing: React.FC = () => {
 
       {/* CONDITIONAL RENDERING */}
       {mode === "history" ? (
-         /* HISTORY VIEW */
-         <div className="flex-1 overflow-y-auto pb-20">
+         <div className="overflow-y-auto min-h-0">
             <BillHistory />
          </div>
       ) : (
-         /* CREATE BILL VIEW (Split Screen) */
-         <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start overflow-hidden">
+         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
             {/* LEFT: PRODUCTS */}
-            <div className="lg:col-span-5 h-full flex flex-col space-y-4 overflow-hidden">
-              <ProductGrid products={products} onAddToCart={addToCart} />
+            <div className="lg:col-span-5 lg:h-[calc(100vh-14rem)]">
+              <ProductGrid products={products} categories={categories} onAddToCart={addToCart} />
             </div>
 
             {/* RIGHT: BILLING */}
-            <div className="lg:col-span-7 flex flex-col lg:items-start h-full overflow-hidden">
-              <Card className="w-full flex flex-col shadow-xl overflow-hidden p-0 h-full">
-                
-                {/* Header */}
-                <div className="p-4 border-b border-neutral-200 dark:border-neutral-800 flex justify-between items-center bg-neutral-50 dark:bg-neutral-900/50 shrink-0">
-                  <h2 className="font-black text-base flex gap-2 items-center tracking-tight">
+            <div className="lg:col-span-7">
+              <Card className="w-full flex flex-col shadow-lg overflow-hidden p-0 border-neutral-200/60 dark:border-neutral-800/60 rounded-2xl">
+                <div className="p-4 border-b border-neutral-100 dark:border-neutral-800 flex justify-between items-center bg-neutral-50/50 dark:bg-neutral-900/50 shrink-0">
+                  <h2 className="font-bold text-sm flex gap-2 items-center tracking-tight text-neutral-800 dark:text-white">
                     <ShoppingCart className="w-5 h-5" /> Current Bill
                   </h2>
-                  <Badge variant="default" className="bg-black text-white dark:bg-white dark:text-black px-3 py-1">
-                    {cart.length} Items
-                  </Badge>
+                  <span className="text-[10px] font-bold text-neutral-500 bg-neutral-100 dark:bg-neutral-800 px-2 py-1 rounded-full border border-neutral-200 dark:border-neutral-700/50">
+                      {cart.length} ITEMS
+                  </span>
                 </div>
 
-                <BillCart
-                  cart={cart}
-                  onUpdateQuantity={updateQuantity}
-                  onUpdatePrice={updatePrice}
-                  onRemove={removeFromCart}
-                  onBlurQuantity={handleBlurQuantity}
-                />
+                <div className="lg:flex-1 lg:overflow-y-auto">
+                  <BillCart
+                    cart={cart}
+                    onUpdateQuantity={updateQuantity}
+                    onUpdatePrice={updatePrice}
+                    onRemove={removeFromCart}
+                    onBlurQuantity={handleBlurQuantity}
+                  />
+                </div>
 
                 <BillForm
                   customerName={customerName}
