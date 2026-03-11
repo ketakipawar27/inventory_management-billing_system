@@ -13,11 +13,13 @@ import {
   Menu,
   X,
   Lock,
-  LogOut
+  LogOut,
+  Languages
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 import { Button } from './ui/Button';
 import { cn } from '../lib/utils';
 
@@ -87,6 +89,7 @@ const BottomNavItem = ({ to, icon: Icon, label, active, onClick }: { to?: string
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const location = useLocation();
   const { theme, toggleTheme } = useTheme();
+  const { language, setLanguage, t } = useLanguage();
   const { lock, logout, user } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
@@ -95,9 +98,21 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     setIsSidebarOpen(false);
   }, [location.pathname]);
 
-  const pageTitle = location.pathname === '/'
-    ? 'Dashboard'
-    : location.pathname.slice(1).split('/')[0].toUpperCase();
+  const getPageTitle = () => {
+    switch (location.pathname) {
+      case '/': return t('nav.dashboard');
+      case '/inventory': return t('nav.inventory');
+      case '/categories': return t('nav.categories');
+      case '/purchases': return t('nav.purchases');
+      case '/billing': return t('nav.billing');
+      case '/activity': return t('nav.activity');
+      default: return location.pathname.slice(1).toUpperCase();
+    }
+  };
+
+  const toggleLanguage = () => {
+    setLanguage(language === 'en' ? 'mr' : 'en');
+  };
 
   return (
     <div className="flex h-screen bg-neutral-50 dark:bg-black text-neutral-900 dark:text-white transition-colors duration-300 overflow-hidden">
@@ -121,20 +136,20 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           </div>
 
           <nav className="flex-1 space-y-1 overflow-y-auto pr-2 scrollbar-hide">
-            <div className="text-[10px] font-black text-neutral-400 dark:text-neutral-600 tracking-widest uppercase mb-4 ml-4">Management</div>
-            <SidebarItem to="/" icon={LayoutDashboard} label="Dashboard" active={location.pathname === '/'} />
-            <SidebarItem to="/inventory" icon={Package} label="Inventory" active={location.pathname === '/inventory'} />
-            <SidebarItem to="/categories" icon={Tag} label="Categories" active={location.pathname === '/categories'} />
+            <div className="text-[10px] font-black text-neutral-400 dark:text-neutral-600 tracking-widest uppercase mb-4 ml-4">{t('nav.management')}</div>
+            <SidebarItem to="/" icon={LayoutDashboard} label={t('nav.dashboard')} active={location.pathname === '/'} />
+            <SidebarItem to="/inventory" icon={Package} label={t('nav.inventory')} active={location.pathname === '/inventory'} />
+            <SidebarItem to="/categories" icon={Tag} label={t('nav.categories')} active={location.pathname === '/categories'} />
             
-            <div className="mt-10 text-[10px] font-black text-neutral-400 dark:text-neutral-600 tracking-widest uppercase mb-4 ml-4">Operations</div>
-            <SidebarItem to="/purchases" icon={PlusCircle} label="Purchases" active={location.pathname === '/purchases'} />
-            <SidebarItem to="/billing" icon={Receipt} label="Billing" active={location.pathname === '/billing'} />
+            <div className="mt-10 text-[10px] font-black text-neutral-400 dark:text-neutral-600 tracking-widest uppercase mb-4 ml-4">{t('nav.operations')}</div>
+            <SidebarItem to="/purchases" icon={PlusCircle} label={t('nav.purchases')} active={location.pathname === '/purchases'} />
+            <SidebarItem to="/billing" icon={Receipt} label={t('nav.billing')} active={location.pathname === '/billing'} />
           </nav>
 
           <div className="mt-auto pt-6 border-t border-neutral-100 dark:border-neutral-900 space-y-1">
-            <div className="text-[10px] font-black text-neutral-400 dark:text-neutral-600 tracking-widest uppercase mb-4 ml-4">System</div>
-            <SidebarItem icon={Lock} label="Lock System" onClick={lock} />
-            <SidebarItem icon={LogOut} label="Sign Out" onClick={logout} className="hover:text-red-500 dark:hover:text-red-400" />
+            <div className="text-[10px] font-black text-neutral-400 dark:text-neutral-600 tracking-widest uppercase mb-4 ml-4">{t('nav.system')}</div>
+            <SidebarItem icon={Lock} label={t('nav.lock')} onClick={lock} />
+            <SidebarItem icon={LogOut} label={t('nav.signout')} onClick={logout} className="hover:text-red-500 dark:hover:text-red-400" />
           </div>
         </div>
       </aside>
@@ -152,12 +167,26 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                 />
             </div>
             <h1 className="text-sm lg:text-base font-black text-neutral-800 dark:text-neutral-200 uppercase tracking-[0.2em] truncate max-w-[150px] sm:max-w-none">
-              {pageTitle}
+              {getPageTitle()}
             </h1>
           </div>
           
           <div className="flex items-center gap-2 lg:gap-4">
-            <Button 
+            {/* Language Toggle */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={toggleLanguage}
+              className="px-2 h-10 rounded-xl transition-all active:scale-95 flex items-center gap-2 hover:bg-neutral-100 dark:hover:bg-neutral-900"
+              aria-label="Toggle Language"
+            >
+              <Languages size={18} className="text-neutral-500" />
+              <span className="text-[10px] font-black uppercase tracking-widest">
+                {language === 'en' ? 'EN' : 'मरा'}
+              </span>
+            </Button>
+
+            <Button
               variant="ghost" 
               size="sm" 
               onClick={toggleTheme}
@@ -170,7 +199,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
             <div className="flex items-center gap-2 lg:gap-3 px-1">
               <div className="hidden md:block text-right">
-                <div className="text-[10px] font-black text-neutral-900 dark:text-white uppercase tracking-widest">{user?.name || 'Admin'} Panel</div>
+                <div className="text-[10px] font-black text-neutral-900 dark:text-white uppercase tracking-widest">{user?.name || 'Admin'} {t('nav.admin_panel')}</div>
                 <div className="text-[9px] text-neutral-400 font-bold uppercase tracking-tight">{user?.email || 'admin@swami.in'}</div>
               </div>
               <div
@@ -202,7 +231,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                 className="fixed inset-y-0 right-0 w-[280px] bg-white dark:bg-black z-[70] lg:hidden p-6 flex flex-col border-l border-neutral-200 dark:border-neutral-900"
               >
                 <div className="flex items-center justify-between mb-8">
-                  <div className="text-xs font-black uppercase tracking-widest text-neutral-400">Account</div>
+                  <div className="text-xs font-black uppercase tracking-widest text-neutral-400">{t('nav.account')}</div>
                   <button onClick={() => setIsSidebarOpen(false)} className="p-2 -mr-2">
                     <X size={20} />
                   </button>
@@ -223,9 +252,33 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                 </div>
 
                 <div className="space-y-2">
-                  <div className="text-[10px] font-black text-neutral-400 dark:text-neutral-600 tracking-widest uppercase mb-4 ml-4">System Actions</div>
-                  <SidebarItem icon={Lock} label="Lock System" onClick={() => { lock(); setIsSidebarOpen(false); }} />
-                  <SidebarItem icon={LogOut} label="Sign Out" onClick={() => { logout(); setIsSidebarOpen(false); }} className="text-red-500" />
+                  <div className="text-[10px] font-black text-neutral-400 dark:text-neutral-600 tracking-widest uppercase mb-4 ml-4">{t('nav.system_actions')}</div>
+                  <SidebarItem icon={Lock} label={t('nav.lock')} onClick={() => { lock(); setIsSidebarOpen(false); }} />
+                  <SidebarItem icon={LogOut} label={t('nav.signout')} onClick={() => { logout(); setIsSidebarOpen(false); }} className="text-red-500" />
+
+                  <div className="mt-6 pt-6 border-t border-neutral-100 dark:border-neutral-900">
+                    <div className="text-[10px] font-black text-neutral-400 dark:text-neutral-600 tracking-widest uppercase mb-4 ml-4">Language</div>
+                    <div className="flex gap-2 p-1 bg-neutral-100 dark:bg-neutral-900 rounded-xl">
+                       <button
+                        onClick={() => setLanguage('en')}
+                        className={cn(
+                          "flex-1 py-2 text-[10px] font-black uppercase rounded-lg transition-all",
+                          language === 'en' ? "bg-white dark:bg-black shadow-sm" : "opacity-40"
+                        )}
+                       >
+                         English
+                       </button>
+                       <button
+                        onClick={() => setLanguage('mr')}
+                        className={cn(
+                          "flex-1 py-2 text-[10px] font-black uppercase rounded-lg transition-all",
+                          language === 'mr' ? "bg-white dark:bg-black shadow-sm" : "opacity-40"
+                        )}
+                       >
+                         मराठी
+                       </button>
+                    </div>
+                  </div>
                 </div>
               </motion.div>
             </>
@@ -251,8 +304,8 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
         {/* Simple Bottom Navigation (Mobile Only) */}
         <nav className="lg:hidden fixed bottom-0 left-0 right-0 h-16 bg-white dark:bg-neutral-900 border-t border-neutral-200 dark:border-neutral-800 flex items-center justify-around px-2 z-40 pb-safe">
-           <BottomNavItem to="/" icon={LayoutDashboard} label="Home" active={location.pathname === '/'} />
-           <BottomNavItem to="/inventory" icon={Package} label="Stock" active={location.pathname === '/inventory'} />
+           <BottomNavItem to="/" icon={LayoutDashboard} label={t('nav.home')} active={location.pathname === '/'} />
+           <BottomNavItem to="/inventory" icon={Package} label={t('nav.stock')} active={location.pathname === '/inventory'} />
 
            {/* Center Billing Button - Highlighted Simple Style */}
            <Link to="/billing" className="flex flex-col items-center justify-center flex-1 gap-1 py-2 group">
@@ -268,12 +321,12 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                 "text-[9px] font-black uppercase tracking-widest transition-all",
                 location.pathname === '/billing' ? "text-black dark:text-white" : "text-neutral-400 dark:text-neutral-500 opacity-60"
               )}>
-                Billing
+                {t('nav.billing')}
               </span>
            </Link>
 
-           <BottomNavItem to="/purchases" icon={PlusCircle} label="Buy" active={location.pathname === '/purchases'} />
-           <BottomNavItem to="/categories" icon={Tag} label="Tags" active={location.pathname === '/categories'} />
+           <BottomNavItem to="/purchases" icon={PlusCircle} label={t('nav.buy')} active={location.pathname === '/purchases'} />
+           <BottomNavItem to="/categories" icon={Tag} label={t('nav.tags')} active={location.pathname === '/categories'} />
         </nav>
       </div>
     </div>

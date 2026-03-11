@@ -13,6 +13,7 @@ import LockScreen from './pages/LockScreen';
 import { ThemeProvider } from './context/ThemeContext';
 import { ToastProvider } from './context/ToastContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { LanguageProvider } from './context/LanguageContext';
 
 const AppContent: React.FC = () => {
   const { isAuthenticated, isLocked } = useAuth();
@@ -91,13 +92,15 @@ const AppContent: React.FC = () => {
 
 const App: React.FC = () => {
   return (
-    <ThemeProvider>
-      <ToastProvider>
-        <AuthProvider>
-          <AppContent />
-        </AuthProvider>
-      </ToastProvider>
-    </ThemeProvider>
+    <LanguageProvider>
+      <ThemeProvider>
+        <ToastProvider>
+          <AuthProvider>
+            <AppContent />
+          </AuthProvider>
+        </ToastProvider>
+      </ThemeProvider>
+    </LanguageProvider>
   );
 };
 

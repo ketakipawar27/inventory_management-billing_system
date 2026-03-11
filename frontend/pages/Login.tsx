@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mail, Lock, ArrowRight, Loader2, Check } from 'lucide-react';
+import { Mail, Lock, ArrowRight, Loader2, Check, Languages } from 'lucide-react';
 import { useAuth, User } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 import { Button } from '../components/ui/Button';
+import { cn } from '../lib/utils';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -11,6 +13,7 @@ const Login: React.FC = () => {
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState('');
   const { setSession } = useAuth();
+  const { t, language, setLanguage } = useLanguage();
   const [userData, setUserData] = useState<User | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -27,11 +30,11 @@ const Login: React.FC = () => {
         setUserData(data);
         setIsSuccess(true);
       } else {
-        setError('Invalid credentials. Please try again.');
+        setError(t('auth.invalid_creds'));
         setLoading(false);
       }
     } catch (err) {
-      setError('An error occurred during login.');
+      setError(t('auth.error'));
       setLoading(false);
     }
   };
@@ -42,8 +45,23 @@ const Login: React.FC = () => {
     }
   };
 
+  const toggleLanguage = () => {
+    setLanguage(language === 'en' ? 'mr' : 'en');
+  };
+
   return (
     <div className="min-h-screen bg-black flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Language Toggle in Login */}
+      <div className="absolute top-6 right-6 z-20">
+        <button
+          onClick={toggleLanguage}
+          className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-white/70 hover:text-white hover:bg-white/10 transition-all text-[10px] font-black uppercase tracking-widest"
+        >
+          <Languages size={14} />
+          {language === 'en' ? 'मराठी' : 'English'}
+        </button>
+      </div>
+
       {/* Dynamic Background Elements */}
       <div className="absolute inset-0 overflow-hidden z-0">
         <motion.div
@@ -102,7 +120,7 @@ const Login: React.FC = () => {
                 transition={{ delay: 0.6 }}
                 className="text-3xl font-black uppercase tracking-tighter text-white"
               >
-                Welcome back, {userData?.name}
+                {t('auth.welcome')}, {userData?.name}
               </motion.h2>
             </motion.div>
           </motion.div>
@@ -119,7 +137,7 @@ const Login: React.FC = () => {
           {/* Subtle glow effect */}
           <div className="absolute -top-24 -left-24 w-48 h-48 bg-red-600/10 rounded-full blur-3xl group-hover:bg-red-600/20 transition-colors duration-700" />
 
-          <div className="flex flex-col items-center mb-10">
+          <div className="flex flex-col items-center mb-8">
             <motion.div
               layoutId="logo"
               className="w-24 h-24 mb-6 relative rounded-full overflow-hidden border-2 border-red-600/30 shadow-[0_0_20px_rgba(220,38,38,0.3)]"
@@ -130,13 +148,24 @@ const Login: React.FC = () => {
                 className="w-full h-full object-cover"
               />
             </motion.div>
-            <h1 className="text-3xl font-black tracking-tighter uppercase mb-2 text-white">Swami Inventory</h1>
-            <p className="text-neutral-500 text-[10px] font-black uppercase tracking-[0.3em]">Business Operations Portal</p>
+
+            <h1 className="text-3xl font-black tracking-tighter uppercase mb-1 text-white">{t('auth.title')}</h1>
+            <p className="text-neutral-500 text-[10px] font-black uppercase tracking-[0.3em] mb-4 text-center">{t('auth.subtitle')}</p>
+
+            {/* Spiritual text placed just below logo/title section */}
+            <motion.p
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4, duration: 0.8 }}
+              className="font-marathi text-xl text-red-500 dark:text-red-500 tracking-wider text-center drop-shadow-[0_0_10px_rgba(239,68,68,0.5)] mb-2 whitespace-nowrap"
+            >
+              "भिऊ नकोस, मी तुझ्या पाठीशी आहे"
+            </motion.p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-500 ml-1">Identity</label>
+              <label className="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-500 ml-1">{t('auth.identity')}</label>
               <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                   <Mail className="h-5 w-5 text-neutral-600 group-focus-within:text-red-500 transition-colors" />
@@ -153,7 +182,7 @@ const Login: React.FC = () => {
             </div>
 
             <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-500 ml-1">Access Key</label>
+              <label className="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-500 ml-1">{t('auth.access_key')}</label>
               <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                   <Lock className="h-5 w-5 text-neutral-600 group-focus-within:text-red-500 transition-colors" />
@@ -197,7 +226,7 @@ const Login: React.FC = () => {
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                   >
-                    Enter System
+                    {t('auth.enter')}
                     <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
                   </motion.span>
                 )}

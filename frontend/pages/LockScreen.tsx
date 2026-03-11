@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Lock, ArrowRight, Loader2, LogOut } from 'lucide-react';
+import { Lock, ArrowRight, Loader2, LogOut, Languages } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 import { Button } from '../components/ui/Button';
 
 const LockScreen: React.FC = () => {
@@ -10,6 +11,7 @@ const LockScreen: React.FC = () => {
   const [error, setError] = useState('');
   const [isUnlocking, setIsUnlocking] = useState(false);
   const { unlock, user, logout } = useAuth();
+  const { t, language, setLanguage } = useLanguage();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,13 +23,17 @@ const LockScreen: React.FC = () => {
       if (success) {
         setIsUnlocking(true);
       } else {
-        setError('Invalid password');
+        setError(t('auth.invalid_creds'));
         setLoading(false);
       }
     } catch (err) {
-      setError('An error occurred');
+      setError(t('auth.error'));
       setLoading(false);
     }
+  };
+
+  const toggleLanguage = () => {
+    setLanguage(language === 'en' ? 'mr' : 'en');
   };
 
   const containerVariants = {
@@ -59,7 +65,18 @@ const LockScreen: React.FC = () => {
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 overflow-hidden bg-black">
-      {/* Background Image - Updated as per request */}
+      {/* Language Toggle in Lock Screen */}
+      <div className="absolute top-6 right-6 z-[110]">
+        <button
+          onClick={toggleLanguage}
+          className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-white/70 hover:text-white hover:bg-white/10 transition-all text-[10px] font-black uppercase tracking-widest"
+        >
+          <Languages size={14} />
+          {language === 'en' ? 'मराठी' : 'English'}
+        </button>
+      </div>
+
+      {/* Background Image */}
       <motion.div
         initial={{ scale: 1.1, opacity: 0 }}
         animate={{ scale: 1, opacity: 0.7 }}
@@ -71,7 +88,6 @@ const LockScreen: React.FC = () => {
           alt="Swami Samarth"
           className="w-full h-full object-cover"
           onError={(e) => {
-             // If wallpaper is missing, the screen stays dark/black
              (e.target as HTMLImageElement).style.opacity = '0';
           }}
         />
@@ -86,31 +102,42 @@ const LockScreen: React.FC = () => {
       >
         <div className="bg-neutral-900/40 backdrop-blur-2xl border border-white/10 p-8 rounded-[2.5rem] shadow-2xl text-center">
 
-          <motion.div variants={itemVariants} className="relative inline-block mb-6">
-            <div className="w-24 h-24 rounded-full bg-neutral-800/50 border-2 border-white/10 flex items-center justify-center shadow-2xl relative overflow-hidden group">
-               <img
-                 src="/static/swami_logo.jpg"
-                 alt="Swami Logo"
-                 className="w-full h-full object-cover scale-110 group-hover:scale-125 transition-transform duration-500"
-               />
-               <motion.div
-                 className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"
-               />
-            </div>
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ delay: 0.5, type: "spring", stiffness: 200 }}
-              className="absolute -bottom-1 -right-1 w-9 h-9 bg-white rounded-full flex items-center justify-center shadow-lg border-4 border-neutral-900 z-10"
-            >
-              <Lock size={14} className="text-black" />
+          <div className="flex flex-col items-center mb-6">
+            <motion.div variants={itemVariants} className="relative inline-block mb-6">
+              <div className="w-24 h-24 rounded-full bg-neutral-800/50 border-2 border-white/10 flex items-center justify-center shadow-2xl relative overflow-hidden group">
+                 <img
+                   src="/static/swami_logo.jpg"
+                   alt="Swami Logo"
+                   className="w-full h-full object-cover scale-110 group-hover:scale-125 transition-transform duration-500"
+                 />
+                 <motion.div
+                   className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"
+                 />
+              </div>
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: 0.5, type: "spring", stiffness: 200 }}
+                className="absolute -bottom-1 -right-1 w-9 h-9 bg-white rounded-full flex items-center justify-center shadow-lg border-4 border-neutral-900 z-10"
+              >
+                <Lock size={14} className="text-black" />
+              </motion.div>
             </motion.div>
-          </motion.div>
 
-          <motion.div variants={itemVariants}>
-            <h2 className="text-2xl font-black tracking-tighter uppercase mb-1 text-white">{user?.name || 'Swami'}</h2>
-            <p className="text-neutral-500 text-[10px] font-black uppercase tracking-widest mb-8">{user?.email || 'swami@gmail.com'}</p>
-          </motion.div>
+            <motion.div variants={itemVariants}>
+              <h2 className="text-2xl font-black tracking-tighter uppercase mb-1 text-white">{user?.name || 'Swami'}</h2>
+              <p className="text-neutral-500 text-[10px] font-black uppercase tracking-widest mb-4">{user?.email || 'swami@gmail.com'}</p>
+            </motion.div>
+
+            <motion.p
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6, duration: 0.8 }}
+              className="font-marathi text-xl text-red-500 dark:text-red-500 tracking-wider text-center drop-shadow-[0_0_10px_rgba(239,68,68,0.5)] mb-2 whitespace-nowrap"
+            >
+              "भिऊ नकोस, मी तुझ्या पाठीशी आहे"
+            </motion.p>
+          </div>
 
           <motion.form
             variants={itemVariants}
@@ -125,7 +152,7 @@ const LockScreen: React.FC = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 autoFocus
                 className="block w-full px-6 py-4 bg-white/5 border border-white/10 rounded-2xl text-sm font-medium focus:ring-2 focus:ring-white focus:border-transparent transition-all outline-none text-center text-white placeholder:text-neutral-600"
-                placeholder="Enter password to unlock"
+                placeholder={t('auth.unlock_placeholder')}
                 required
               />
             </div>
@@ -167,7 +194,7 @@ const LockScreen: React.FC = () => {
                     exit={{ opacity: 0 }}
                     className="flex items-center justify-center gap-2"
                   >
-                    Unlock
+                    {t('auth.unlock')}
                     <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
                   </motion.span>
                 )}
@@ -183,7 +210,7 @@ const LockScreen: React.FC = () => {
             className="mt-8 flex items-center gap-2 text-neutral-500 hover:text-white transition-colors mx-auto text-[10px] font-black uppercase tracking-widest"
           >
             <LogOut size={14} />
-            Switch Account
+            {t('auth.switch_account')}
           </motion.button>
         </div>
       </motion.div>
