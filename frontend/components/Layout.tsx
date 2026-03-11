@@ -109,8 +109,12 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         <div className="p-6 flex flex-col h-full">
           <div className="flex items-center justify-between mb-10">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-black dark:bg-white rounded-xl flex items-center justify-center shadow-xl">
-                <div className="w-5 h-5 bg-white dark:bg-black rounded-md rotate-45" />
+              <div className="w-10 h-10 rounded-xl overflow-hidden shadow-xl border border-neutral-200 dark:border-neutral-800">
+                <img
+                  src="/static/swami_logo.jpg"
+                  alt="Swami Logo"
+                  className="w-full h-full object-cover"
+                />
               </div>
               <span className="text-2xl font-black tracking-tighter uppercase">Swami</span>
             </div>
@@ -140,8 +144,12 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         {/* Header */}
         <header className="h-16 lg:h-20 border-b border-neutral-200 dark:border-neutral-900 flex items-center justify-between px-4 lg:px-10 bg-neutral-50/80 dark:bg-black/80 backdrop-blur-xl z-30 shrink-0">
           <div className="flex items-center gap-3">
-            <div className="lg:hidden w-8 h-8 bg-black dark:bg-white rounded-lg flex items-center justify-center shadow-lg">
-                <div className="w-4 h-4 bg-white dark:bg-black rounded-sm rotate-45" />
+            <div className="lg:hidden w-8 h-8 rounded-lg overflow-hidden shadow-lg border border-neutral-200 dark:border-neutral-800">
+                <img
+                  src="/static/swami_logo.jpg"
+                  alt="Swami Logo"
+                  className="w-full h-full object-cover"
+                />
             </div>
             <h1 className="text-sm lg:text-base font-black text-neutral-800 dark:text-neutral-200 uppercase tracking-[0.2em] truncate max-w-[150px] sm:max-w-none">
               {pageTitle}
@@ -201,8 +209,12 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                 </div>
 
                 <div className="flex items-center gap-4 mb-10 p-4 rounded-2xl bg-neutral-50 dark:bg-neutral-900 border border-neutral-100 dark:border-neutral-800">
-                  <div className="w-12 h-12 rounded-xl bg-black dark:bg-white flex items-center justify-center font-black text-white dark:text-black">
-                    {user?.name?.substring(0, 2).toUpperCase() || 'SA'}
+                  <div className="w-12 h-12 rounded-xl overflow-hidden border border-neutral-200 dark:border-neutral-800 shadow-sm">
+                    <img
+                      src="/static/swami_logo.jpg"
+                      alt="Swami Logo"
+                      className="w-full h-full object-cover"
+                    />
                   </div>
                   <div>
                     <div className="text-sm font-black uppercase">{user?.name || 'Admin'}</div>
