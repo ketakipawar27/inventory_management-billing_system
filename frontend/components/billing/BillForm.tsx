@@ -39,7 +39,7 @@ export const BillForm: React.FC<BillFormProps> = ({
         <div className="space-y-4">
           <Input
             label="Customer Name"
-            placeholder="E.g. Aniket Baral"
+            placeholder="E.g. Ketaki Pawar"
             required
             value={customerName}
             onChange={(e) => setCustomerName(e.target.value)}
